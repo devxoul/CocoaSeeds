@@ -1,6 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'Xcodeproj'
+
+
+$source_files = {}
+
 
 def github(repo, branch, options=nil)
   puts "Installing '#{repo}'..."
@@ -9,19 +14,27 @@ def github(repo, branch, options=nil)
   name = repo.split('/')[1]
   dir = "Mods/#{name}"
 
-  output = `test -d #{dir} && rm -rf #{dir};`
-           `git clone #{url} -b #{branch} #{dir} 2>&1`
+  # output = `test -d #{dir} && rm -rf #{dir};`
+  #          `git clone #{url} -b #{branch} #{dir} 2>&1`
 
   if !options.nil?
-    sources = options[:source]
-    if !sources.nil?
-      if sources.kind_of?(String)
-        sources = [sources]
+    files = options[:files]
+    if !files.nil?
+      if files.kind_of?(String)
+        files = [files]
       end
-      puts sources
+
+      files.each do |file|
+        absoulte_files = `ls #{dir}/#{file} 2>&1`.split(/\r?\n/)
+        relative_files = absoulte_files.map { |file|
+          file.split('/')[(1..-1)].join('/')
+        }
+        $source_files[name] = relative_files
+      end
     end
   end
 end
+
 
 def read_modfile
   begin
@@ -38,6 +51,22 @@ def install
   mods.each do |line|
     eval line
   end
+  generate_project
+end
+
+
+def generate_project
+  project = Xcodeproj::Project.new('Mods/Mods.xcodeproj')
+  group_mods = project.new_group('Mods')
+
+  $source_files.each do |mod, files|
+    group_mod = group_mods.new_group(mod)
+    files.each do |file|
+      group_mod.new_file(file)
+    end
+  end
+
+  project.save
 end
 
 
