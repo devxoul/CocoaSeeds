@@ -17,18 +17,19 @@ def github(repo, branch, options=nil)
   # output = `test -d #{dir} && rm -rf #{dir};`
   #          `git clone #{url} -b #{branch} #{dir} 2>&1`
 
-  if !options.nil?
+  if not options.nil?
     files = options[:files]
-    if !files.nil?
+    if not files.nil?
       if files.kind_of?(String)
         files = [files]
       end
 
       files.each do |file|
         absoulte_files = `ls #{dir}/#{file} 2>&1`.split(/\r?\n/)
-        relative_files = absoulte_files.map { |file|
-          file.split('/')[(1..-1)].join('/')
-        }
+        relative_files = absoulte_files.map
+        # { |file|
+          # file.split('/')[(1..-1)].join('/')
+        # }
         $source_files[name] = relative_files
       end
     end
@@ -56,13 +57,45 @@ end
 
 
 def generate_project
-  project = Xcodeproj::Project.new('Mods/Mods.xcodeproj')
-  group_mods = project.new_group('Mods')
+  project_filename_candidates = `ls | grep .xcodeproj`.split(/\r?\n/)
+  if project_filename_candidates.length == 0
+    puts "Couldn't find .xcodeproj file."
+    exit 1
+  end
+
+  project_filename = project_filename_candidates[0]
+  project = Xcodeproj::Project.open(project_filename)
+
+  group_mods = project['Mods']
+  if not group_mods.nil?
+    group_mods.clear
+  else
+    group_mods = project.new_group('Mods')
+  end
+
+  file_references = []
 
   $source_files.each do |mod, files|
     group_mod = group_mods.new_group(mod)
     files.each do |file|
-      group_mod.new_file(file)
+      added_file = group_mod.new_file(file)
+      file_references.push(added_file)
+    end
+  end
+
+  project.targets.each do |target|
+    if project.targets.length > 1 and target.name.end_with?('Tests')
+      next
+    end
+
+    target.build_phases.each do |phase|
+      if not phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
+        next
+      end
+
+      file_references.each do |file|
+        phase.add_file_reference(file)
+      end
     end
   end
 
