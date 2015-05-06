@@ -14,4 +14,5 @@ Gem::Specification.new do |s|
   s.executables << 'seed'
 
   s.add_runtime_dependency 'xcodeproj', '~> 0.24.1'
+  s.required_ruby_version = '>= 2.0.0'
 end
