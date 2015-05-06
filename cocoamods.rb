@@ -14,8 +14,8 @@ def github(repo, branch, options=nil)
   name = repo.split('/')[1]
   dir = "Mods/#{name}"
 
-  # output = `test -d #{dir} && rm -rf #{dir};`
-  #          `git clone #{url} -b #{branch} #{dir} 2>&1`
+  output = `test -d #{dir} && rm -rf #{dir};`
+           `git clone #{url} -b #{branch} #{dir} 2>&1`
 
   if not options.nil?
     files = options[:files]
