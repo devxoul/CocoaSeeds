@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 require 'Xcodeproj'
 
 
@@ -21,7 +19,7 @@ def github(repo, branch, options=nil)
 
   url = 'https://github.com/' + repo
   name = repo.split('/')[1]
-  dir = "Mods/#{name}"
+  dir = "Seeds/#{name}"
 
   `test -d #{dir} && rm -rf #{dir}; git clone #{url} -b #{branch} #{dir} 2>&1`
 
@@ -41,19 +39,19 @@ def github(repo, branch, options=nil)
 end
 
 
-def read_modfile
+def read_seedfile
   begin
-    return File.read('Modfile')
+    return File.read('Seedfile')
   rescue
-    puts 'No Modfile.'
+    puts 'No Seedfile.'
     exit 1
   end
 end
 
 
 def install
-  mods = read_modfile.split('\r\n')
-  mods.each do |line|
+  seeds = read_seedfile.split('\r\n')
+  seeds.each do |line|
     eval line
   end
   generate_project
@@ -72,19 +70,19 @@ def generate_project
 
   puts "Configuring #{project_filename}"
 
-  group_mods = project['Mods']
-  if not group_mods.nil?
-    group_mods.clear
+  group_seeds = project['Seeds']
+  if not group_seeds.nil?
+    group_seeds.clear
   else
-    group_mods = project.new_group('Mods')
+    group_seeds = project.new_group('Seeds')
   end
 
   file_references = []
 
-  $source_files.each do |mod, files|
-    group_mod = group_mods.new_group(mod)
+  $source_files.each do |seed, files|
+    group_seed = group_seeds.new_group(seed)
     files.each do |file|
-      added_file = group_mod.new_file(file)
+      added_file = group_seed.new_file(file)
       file_references.push(added_file)
     end
   end
@@ -124,5 +122,5 @@ case ARGV[0]
   when 'install'
     install
   else
-    puts 'Usage: cocoamods install'
+    puts 'Usage: seed install'
 end
