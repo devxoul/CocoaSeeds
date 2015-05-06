@@ -7,15 +7,24 @@ require 'Xcodeproj'
 $source_files = {}
 
 
+class String
+  def colorize(color_code) "\e[#{color_code}m#{self}\e[0m" end
+  def red; colorize(31) end
+  def green; colorize(32) end
+  def yellow; colorize(33) end
+  def blue; colorize(34) end
+  def pink; colorize(35) end
+end
+
+
 def github(repo, branch, options=nil)
-  puts "Installing '#{repo}'..."
+  puts "Installing #{repo} (#{branch})".green
 
   url = 'https://github.com/' + repo
   name = repo.split('/')[1]
   dir = "Mods/#{name}"
 
-  output = `test -d #{dir} && rm -rf #{dir};`
-           `git clone #{url} -b #{branch} #{dir} 2>&1`
+  `test -d #{dir} && rm -rf #{dir}; git clone #{url} -b #{branch} #{dir} 2>&1`
 
   if not options.nil?
     files = options[:files]
@@ -55,12 +64,14 @@ end
 def generate_project
   project_filename_candidates = `ls | grep .xcodeproj`.split(/\r?\n/)
   if project_filename_candidates.length == 0
-    puts "Couldn't find .xcodeproj file."
+    puts "Couldn't find .xcodeproj file.".red
     exit 1
   end
 
   project_filename = project_filename_candidates[0]
   project = Xcodeproj::Project.open(project_filename)
+
+  puts "Configuring #{project_filename}"
 
   group_mods = project['Mods']
   if not group_mods.nil?
@@ -73,11 +84,9 @@ def generate_project
 
   $source_files.each do |mod, files|
     group_mod = group_mods.new_group(mod)
-    puts mod
     files.each do |file|
       added_file = group_mod.new_file(file)
       file_references.push(added_file)
-      # puts "    #{file}"
     end
   end
 
@@ -108,6 +117,7 @@ def generate_project
   end
 
   project.save
+  puts "Done."
 end
 
 
