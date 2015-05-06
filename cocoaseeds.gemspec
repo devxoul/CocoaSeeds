@@ -12,4 +12,6 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/devxoul/CocoaSeeds'
   s.license     = 'MIT'
   s.executables << 'seed'
+
+  s.add_runtime_dependency 'xcodeproj', '~> 0.24.1'
 end
