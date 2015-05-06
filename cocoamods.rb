@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
 require 'Xcodeproj'
 
 
@@ -121,24 +120,9 @@ def generate_project
 end
 
 
-opt_parser = OptionParser.new do |opt|
-  opt.banner = 'Usage: cocoapods COMMAND [OPTIONS]'
-  opt.separator  ''
-  opt.separator  'Commands'
-  opt.separator  '     install: install dependencies'
-  opt.separator  ''
-  opt.separator  'Options'
-
-  opt.on('-h', '--help', 'show this help message.') do
-    puts opt_parser
-  end
-end
-
-opt_parser.parse!
-
 case ARGV[0]
   when 'install'
     install
   else
-    puts opt_parser
+    puts 'Usage: cocoamods install'
 end
