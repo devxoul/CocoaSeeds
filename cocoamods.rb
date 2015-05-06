@@ -25,12 +25,8 @@ def github(repo, branch, options=nil)
       end
 
       files.each do |file|
-        absoulte_files = `ls #{dir}/#{file} 2>&1`.split(/\r?\n/)
-        relative_files = absoulte_files.map
-        # { |file|
-          # file.split('/')[(1..-1)].join('/')
-        # }
-        $source_files[name] = relative_files
+        absoulte_files = `ls #{dir}/#{file} 2>&1 2>/dev/null`.split(/\r?\n/)
+        $source_files[name] = absoulte_files
       end
     end
   end
@@ -77,9 +73,11 @@ def generate_project
 
   $source_files.each do |mod, files|
     group_mod = group_mods.new_group(mod)
+    puts mod
     files.each do |file|
       added_file = group_mod.new_file(file)
       file_references.push(added_file)
+      # puts "    #{file}"
     end
   end
 
@@ -93,8 +91,18 @@ def generate_project
         next
       end
 
+      phase.files_references.each do |file_reference|
+        begin
+          file_reference.real_path
+        rescue
+          phase.remove_file_reference(file_reference)
+        end
+      end
+
       file_references.each do |file|
-        phase.add_file_reference(file)
+        if not phase.include?(file)
+          phase.add_file_reference(file)
+        end
       end
     end
   end
