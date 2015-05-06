@@ -8,3 +8,6 @@ build:
 
 install:
 	sudo gem install cocoaseeds-*.gem
+
+push: clean build
+	gem push cocoaseeds-*.gem
