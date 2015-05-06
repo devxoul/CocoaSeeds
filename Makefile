@@ -1,7 +1,7 @@
 @all: clean build install
 
 clean:
-	rm cocoaseeds-*.gem
+	rm -f cocoaseeds-*.gem
 
 build:
 	gem build cocoaseeds.gemspec
