@@ -17,15 +17,29 @@ module Seed
       end
     end
 
-    def self.github(repo, branch, options=nil)
-      puts "Installing #{repo} (#{branch})".green
-
+    def self.github(repo, tag, options=nil)
       url = "https://github.com/#{repo}"
       name = repo.split('/')[1]
       dir = "Seeds/#{name}"
 
-      # `test -d #{dir} && rm -rf #{dir};`
-      # `git clone #{url} -b #{branch} #{dir} 2>&1`
+      if File.exist?(dir)
+        current_tag = `cd #{dir} && git describe --tags --abbrev=0 2>&1`
+        current_tag.strip!
+        if current_tag == tag
+          puts "Using #{name} (#{tag})"
+        else
+          puts "Installing #{name} #{tag} (was #{current_tag})".green
+          `cd #{dir} 2>&1 &&\
+           git reset HEAD --hard 2>&1 &&\
+           git checkout . 2>&1 &&\
+           git clean -fd 2>&1 &&\
+           git fetch origin #{tag} 2>&1 &&\
+           git checkout #{tag} 2>&1`
+        end
+      else
+        puts "Installing #{name} (#{tag})".green
+        `git clone #{url} -b #{tag} #{dir} 2>&1`
+      end
 
       if not options.nil?
         files = options[:files]
