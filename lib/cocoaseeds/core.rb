@@ -93,6 +93,7 @@ module Seed
         seedgroup = group.new_group(seedname)
         files.each { |file| file_references << seedgroup.new_file(file) }
       end
+      file_references
     end
 
     def self.configure_phase(project, file_references)
