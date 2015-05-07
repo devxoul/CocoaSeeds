@@ -6,6 +6,8 @@ module Seed
       case argv[0]
       when 'install'
         Seed::Core.install
+      when '--version'
+        puts Seed::VERSION
       else
         self.help
       end

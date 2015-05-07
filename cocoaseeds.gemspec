@@ -1,8 +1,9 @@
+require File.expand_path('../lib/cocoaseeds/version', __FILE__)
 require 'date'
 
 Gem::Specification.new do |s|
   s.name        = 'cocoaseeds'
-  s.version     = '0.0.2'
+  s.version     = Seed::VERSION
   s.date        = Date.today
   s.summary     = "Git Submodule Alternative for Cocoa."
   s.description = "Git Submodule Alternative for Cocoa."
