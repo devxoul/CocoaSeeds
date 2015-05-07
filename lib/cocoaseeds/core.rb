@@ -38,7 +38,14 @@ module Seed
         end
       else
         puts "Installing #{name} (#{tag})".green
-        `git clone #{url} -b #{tag} #{dir} 2>&1`
+        output = `git clone #{url} -b #{tag} #{dir} 2>&1`
+        if output.include?("not found")
+          if output.include?("repository")
+            puts "[!] #{name}: Couldn't find the repository.".red
+          elsif output.include?("upstream")
+            puts "[!] #{name}: Couldn't find the tag `#{tag}`.".red
+          end
+        end
       end
 
       if not options.nil?
