@@ -1,115 +1,178 @@
+require 'fileutils'
+require 'yaml'
+
 module CocoaSeed
   class Core
-    @source_files = {}
+    attr_reader :root_path, :seedfile_path, :lockfile_path
+    attr_accessor :project, :seedfile, :lockfile
+    attr_reader :seeds, :locks
+    attr_reader :source_files, :file_references
 
-    def self.install
-      seeds = read_seedfile.split('\r\n')
-      seeds.each { |line| eval line }
+    def initialize(root_path)
+      @root_path = root_path
+      @seedfile_path = File.join(root_path, "Seedfile")
+      @lockfile_path = File.join(root_path, "Seeds", "Seedfile.lock")
+      @seeds = {}
+      @locks = {}
+      @source_files = {}
+      @file_references = []
+    end
+
+    def install
+      self.prepare_requirements
+      self.analyze_dependencies
+      self.remove_seeds
+      self.install_seeds
       self.configure_project
+      self.configure_phase
+      self.project.save
+      self.build_lockfile
     end
 
-    def self.read_seedfile
-      begin
-        File.read('Seedfile')
-      rescue
-        puts 'No Seedfile.'
-        exit 1
-      end
-    end
-
-    def self.github(repo, tag, options=nil)
-      url = "https://github.com/#{repo}"
-      name = repo.split('/')[1]
-      dir = "Seeds/#{name}"
-
-      if File.exist?(dir)
-        current_tag = `cd #{dir} && git describe --tags --abbrev=0 2>&1`
-        current_tag.strip!
-        if current_tag == tag
-          puts "Using #{name} (#{tag})"
-        else
-          puts "Installing #{name} #{tag} (was #{current_tag})".green
-          `cd #{dir} 2>&1 &&\
-           git reset HEAD --hard 2>&1 &&\
-           git checkout . 2>&1 &&\
-           git clean -fd 2>&1 &&\
-           git fetch origin #{tag} 2>&1 &&\
-           git checkout #{tag} 2>&1`
-        end
-      else
-        puts "Installing #{name} (#{tag})".green
-        output = `git clone #{url} -b #{tag} #{dir} 2>&1`
-        if output.include?("not found")
-          if output.include?("repository")
-            puts "[!] #{name}: Couldn't find the repository.".red
-          elsif output.include?("upstream")
-            puts "[!] #{name}: Couldn't find the tag `#{tag}`.".red
-          end
-        end
-      end
-
-      if not options.nil?
-        files = options[:files]
-        if not files.nil?
-          if files.kind_of?(String)
-            files = [files]
-          end
-
-          files.each do |file|
-            file_list = `ls #{dir}/#{file} 2>&1 2>/dev/null`
-            absoulte_files = file_list.split(/\r?\n/)
-            @source_files[name] = absoulte_files
-          end
-        end
-      end
-
-      if not @source_files[name]
-        @source_files[name] = dir
-      end
-    end
-
-    def self.configure_project
-      # detect Xcode project
-      project_filename = `ls | grep .xcodeproj`.split(/\r?\n/)[0]
+    def prepare_requirements
+      # .xcodeproj
+      project_filename = Dir.glob("#{root_path}/*.xcodeproj")[0]
       if not project_filename
         puts "Couldn't find .xcodeproj file.".red
         exit 1
       end
+      self.project = Xcodeproj::Project.open(project_filename)
 
-      puts "Configuring #{project_filename}"
-      project = Xcodeproj::Project.open(project_filename)
+      # Seedfile
+      begin
+        self.seedfile = File.read(self.seedfile_path)
+      rescue Errno::ENOENT
+        puts "Couldn't find Seedfile.".red
+        exit 1
+      end
 
-      file_references = self.configure_group(project)
-      self.configure_phase(project, file_references)
-
-      project.save
+      # Seedfile.lock - optional
+      begin
+        self.lockfile = File.read(self.lockfile_path)
+      rescue Errno::ENOENT
+      end
     end
 
-    def self.configure_group(project)
-      group = project['Seeds'] or project.new_group('Seeds')
-      file_references = []
+    def analyze_dependencies
+      puts "Anaylizing dependencies"
 
-      # add source files to the group if not exist
-      @source_files.each do |seedname, files|
-        seedgroup = group[seedname] or group.new_group(seedname)
-        files.each do |file|
-          filename = file.split('/')[-1]
-          if not seedgroup[filename]
-            file_references << seedgroup.new_file(file)
+      # Seedfile.lock
+      if self.lockfile
+        locks = YAML.load(self.lockfile)
+        locks["SEEDS"].each do |lock|
+          seed = CocoaSeed::Seed.new
+          seed.name = lock.split(' (')[0]
+          seed.version = lock.split('(')[1].split(')')[0]
+          self.locks[seed.name] = seed
+        end
+      end
+
+      # Seedfile
+      eval self.seedfile
+    end
+
+    def github(repo, tag, options={})
+      seed = CocoaSeed::Seed::GitHub.new
+      seed.url = "https://github.com/#{repo}"
+      seed.name = repo.split('/')[1]
+      seed.version = tag
+      seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+      if seed.files.kind_of?(String)
+        seed.files = [seed.files]
+      end
+      self.seeds[seed.name] = seed
+    end
+
+    def remove_seeds
+      removings = self.locks.keys - self.seeds.keys
+      removings.each do |name|
+        puts "Removing #{name} (#{self.locks[name].version})".red
+        dirname = File.join(self.root_path, "Seeds", name)
+        FileUtils.rm_rf(dirname)
+      end
+    end
+
+    def install_seeds
+      self.seeds.each do |name, seed|
+        dirname = File.join(self.root_path, "Seeds", name)
+        if File.exist?(dirname)
+          tag = `cd #{dirname} && git describe --tags --abbrev=0 2>&1`
+          tag.strip!
+          if tag == seed.version
+            puts "Using #{name} (#{seed.version})"
+          else
+            puts "Installing #{name} #{seed.version} (was #{tag})".green
+            `cd #{dirname} 2>&1 &&\
+             git reset HEAD --hard 2>&1 &&\
+             git checkout . 2>&1 &&\
+             git clean -fd 2>&1 &&\
+             git fetch origin #{seed.version} 2>&1 &&\
+             git checkout #{seed.version} 2>&1`
+          end
+        else
+          puts "Installing #{name} (#{seed.version})".green
+          output = `git clone #{seed.url} -b #{seed.version} #{dirname} 2>&1`
+          if output.include?("not found")
+            if output.include?("repository")
+              puts "[!] #{name}: Couldn't find the repository.".red
+            elsif output.include?("upstream")
+              puts "[!] #{name}: Couldn't find the tag `#{seed.version}`.".red
+            end
+          end
+        end
+
+        if seed.files
+          seed.files.each do |file|
+            self.source_files[name] = Dir.glob(File.join(dirname, file))
           end
         end
       end
-      file_references
     end
 
-    def self.configure_phase(project, file_references)
-      targets = project.targets.select { |t| not t.name.end_with?('Tests') }
+    def configure_project
+      puts "Configuring #{self.project.path.basename}"
+
+      group = self.project['Seeds'] || self.project.new_group('Seeds')
+
+      # remove existing group that doesn't have any file references
+      group.groups.each do |seedgroup|
+        valid_files = seedgroup.children.select do |child|
+          File.exist?(child.real_path)
+        end
+        if valid_files.length == 0
+          seedgroup.remove_from_project
+        end
+      end
+
+      self.source_files.each do |seedname, filepaths|
+        seedgroup = group[seedname] || group.new_group(seedname)
+        filepaths.each do |path|
+          filename = path.split('/')[-1]
+          file_reference = seedgroup[filename] || seedgroup.new_file(path)
+          self.file_references << file_reference
+        end
+
+        unusing_files = seedgroup.files - self.file_references
+        unusing_files.each { |file| file.remove_from_project }
+      end
+    end
+
+    def configure_phase
+      targets = self.project.targets.select do |t|
+        not t.name.end_with?('Tests')
+      end
+
       targets.each do |target|
-        # detect source build phase
-        phase = target.build_phases.each do |phase|
-          if phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
-            return phase
-          end
+        # detect 'Compile Sources' build phase
+        phases = target.build_phases.select do |phase|
+          phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
+        end
+        phase = phases[0]
+
+        if not phase
+          puts "[!] Target `#{target}` doesn't have build phase "\
+               "'Compile Sources'.".red
+          exit 1
         end
 
         # remove zombie file references
@@ -122,12 +185,20 @@ module CocoaSeed
         end
 
         # add file references to sources build phase
-        file_references.each do |file|
+        self.file_references.each do |file|
           if not phase.include?(file)
             phase.add_file_reference(file)
           end
         end
       end
+    end
+
+    def build_lockfile
+      tree = { "SEEDS" => [] }
+      self.seeds.each do |name, seed|
+        tree["SEEDS"] << "#{name} (#{seed.version})"
+      end
+      File.write(self.lockfile_path, YAML.dump(tree))
     end
   end
 end

@@ -5,4 +5,5 @@ module CocoaSeed
 
   autoload :Command,  'cocoaseeds/command'
   autoload :Core,     'cocoaseeds/core'
+  autoload :Seed,     'cocoaseeds/seed'
 end

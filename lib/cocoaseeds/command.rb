@@ -5,7 +5,7 @@ module CocoaSeed
     def self.run(argv)
       case argv[0]
       when 'install'
-        CocoaSeed::Core.install
+        CocoaSeed::Core.new(Dir.pwd).install
       when '--version'
         puts CocoaSeed::VERSION
       else
