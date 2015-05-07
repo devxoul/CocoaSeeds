@@ -86,19 +86,18 @@ module Seed
     end
 
     def self.configure_group(project)
-      # prepare group 'Seeds'
-      group = project['Seeds']
-      if not group.nil?
-        group.clear
-      else
-        group = project.new_group('Seeds')
-      end
-
-      # add source files to group
+      group = project['Seeds'] or project.new_group('Seeds')
       file_references = []
+
+      # add source files to the group if not exist
       @source_files.each do |seedname, files|
-        seedgroup = group.new_group(seedname)
-        files.each { |file| file_references << seedgroup.new_file(file) }
+        seedgroup = group[seedname] or group.new_group(seedname)
+        files.each do |file|
+          filename = file.split('/')[-1]
+          if not seedgroup[filename]
+            file_references << seedgroup.new_file(file)
+          end
+        end
       end
       file_references
     end
