@@ -24,8 +24,8 @@ module Seed
       name = repo.split('/')[1]
       dir = "Seeds/#{name}"
 
-      `test -d #{dir} && rm -rf #{dir};`
-      `git clone #{url} -b #{branch} #{dir} 2>&1`
+      # `test -d #{dir} && rm -rf #{dir};`
+      # `git clone #{url} -b #{branch} #{dir} 2>&1`
 
       if not options.nil?
         files = options[:files]
@@ -47,18 +47,9 @@ module Seed
       end
     end
 
-    def self.project_filename
-      `ls | grep .xcodeproj`.split(/\r?\n/)[0]
-    end
-
     def self.configure_project
-      project_filename_candidates = `ls | grep .xcodeproj`.split(/\r?\n/)
-      if project_filename_candidates.length == 0
-        puts "Couldn't find .xcodeproj file.".red
-        exit 1
-      end
-
-      project_filename = self.project_filename
+      # detect Xcode project
+      project_filename = `ls | grep .xcodeproj`.split(/\r?\n/)[0]
       if not project_filename
         puts "Couldn't find .xcodeproj file.".red
         exit 1
@@ -67,51 +58,55 @@ module Seed
       puts "Configuring #{project_filename}"
       project = Xcodeproj::Project.open(project_filename)
 
-      group_seeds = project['Seeds']
-      if not group_seeds.nil?
-        group_seeds.clear
-      else
-        group_seeds = project.new_group('Seeds')
-      end
-
-      file_references = []
-
-      @source_files.each do |seed, files|
-        group_seed = group_seeds.new_group(seed)
-        files.each do |file|
-          added_file = group_seed.new_file(file)
-          file_references.push(added_file)
-        end
-      end
-
-      project.targets.each do |target|
-        if project.targets.length > 1 and target.name.end_with?('Tests')
-          next
-        end
-
-        target.build_phases.each do |phase|
-          if not phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
-            next
-          end
-
-          phase.files_references.each do |file_reference|
-            begin
-              file_reference.real_path
-            rescue
-              phase.remove_file_reference(file_reference)
-            end
-          end
-
-          file_references.each do |file|
-            if not phase.include?(file)
-              phase.add_file_reference(file)
-            end
-          end
-        end
-      end
+      file_references = self.configure_group(project)
+      self.configure_phase(project, file_references)
 
       project.save
-      puts "Done."
+    end
+
+    def self.configure_group(project)
+      # prepare group 'Seeds'
+      group = project['Seeds']
+      if not group.nil?
+        group.clear
+      else
+        group = project.new_group('Seeds')
+      end
+
+      # add source files to group
+      file_references = []
+      @source_files.each do |seedname, files|
+        seedgroup = group.new_group(seedname)
+        files.each { |file| file_references << seedgroup.new_file(file) }
+      end
+    end
+
+    def self.configure_phase(project, file_references)
+      targets = project.targets.select { |t| not t.name.end_with?('Tests') }
+      targets.each do |target|
+        # detect source build phase
+        phase = target.build_phases.each do |phase|
+          if phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
+            return phase
+          end
+        end
+
+        # remove zombie file references
+        phase.files_references.each do |file_reference|
+          begin
+            file_reference.real_path
+          rescue
+            phase.remove_file_reference(file_reference)
+          end
+        end
+
+        # add file references to sources build phase
+        file_references.each do |file|
+          if not phase.include?(file)
+            phase.add_file_reference(file)
+          end
+        end
+      end
     end
   end
 end
