@@ -11,7 +11,11 @@ Gem::Specification.new do |s|
   s.files       = ["lib/cocoaseeds.rb"]
   s.homepage    = 'https://github.com/devxoul/CocoaSeeds'
   s.license     = 'MIT'
-  s.executables << 'seed'
+
+  s.files = Dir["lib/**/*.rb"] + %w{ bin/seed README.md LICENSE }
+
+  s.executables   = %w{ seed }
+  s.require_paths = %w{ lib }
 
   s.add_runtime_dependency 'xcodeproj', '~> 0.24.1'
   s.add_runtime_dependency 'colorize', '~> 0.7.7'

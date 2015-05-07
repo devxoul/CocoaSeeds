@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
 require 'cocoaseeds'
+
+Seed::Command.run(ARGV)
