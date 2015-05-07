@@ -3,7 +3,7 @@ require 'date'
 
 Gem::Specification.new do |s|
   s.name        = 'cocoaseeds'
-  s.version     = Seed::VERSION
+  s.version     = CocoaSeed::VERSION
   s.date        = Date.today
   s.summary     = "Git Submodule Alternative for Cocoa."
   s.description = "Git Submodule Alternative for Cocoa."

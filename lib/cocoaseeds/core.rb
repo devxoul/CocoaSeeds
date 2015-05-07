@@ -1,4 +1,4 @@
-module Seed
+module CocoaSeed
   class Core
     @source_files = {}
 
