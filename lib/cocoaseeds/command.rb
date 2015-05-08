@@ -3,7 +3,11 @@ module Seeds
     def self.run(argv)
       case argv[0]
       when 'install'
-        Seeds::Core.new(Dir.pwd).install
+        begin
+          Seeds::Core.new(Dir.pwd).install
+        rescue Seeds::Exception => e
+          puts "[!] #{e.message}".red
+        end
       when '--version'
         puts Seeds::VERSION
       else

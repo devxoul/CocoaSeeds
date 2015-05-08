@@ -34,8 +34,7 @@ module Seeds
       # .xcodeproj
       project_filename = Dir.glob("#{root_path}/*.xcodeproj")[0]
       if not project_filename
-        puts "Couldn't find .xcodeproj file.".red
-        exit 1
+        raise Seeds::Exception.new "Couldn't find .xcodeproj file."
       end
       self.project = Xcodeproj::Project.open(project_filename)
 
@@ -43,8 +42,7 @@ module Seeds
       begin
         self.seedfile = File.read(self.seedfile_path)
       rescue Errno::ENOENT
-        puts "Couldn't find Seedfile.".red
-        exit 1
+        raise Seeds::Exception.new  "Couldn't find Seedfile."
       end
 
       # Seedfile.lock - optional
@@ -171,9 +169,8 @@ module Seeds
         phase = phases[0]
 
         if not phase
-          puts "[!] Target `#{target}` doesn't have build phase "\
-               "'Compile Sources'.".red
-          exit 1
+          raise Seeds::Exception.new\
+            "Target `#{target}` doesn't have build phase 'Compile Sources'."
         end
 
         # remove zombie file references
