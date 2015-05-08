@@ -1,8 +1,8 @@
-require 'test/unit'
+require "minitest/autorun"
 
 require_relative "../lib/cocoaseeds"
 
-class CoreTest < Test::Unit::TestCase
+class CoreTest < Minitest::Test
 
   def setup
     pwd = File.expand_path(File.dirname(__FILE__))
@@ -47,7 +47,7 @@ class CoreTest < Test::Unit::TestCase
       File.exists?(File.join(@seeds_dirname, "JLToast")),
       "Directory Seeds/JLToast not exists."
 
-    assert_not_nil\
+    refute_nil\
       self.project["Seeds"]["JLToast"],
       "Group 'Seeds/JLToast' not exists in the project."
 
