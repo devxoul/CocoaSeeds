@@ -24,6 +24,10 @@ module Seeds
       self.configure_phase
       self.project.save
       self.build_lockfile
+      @seeds = {}
+      @locks = {}
+      @source_files = {}
+      @file_references = []
     end
 
     def prepare_requirements
