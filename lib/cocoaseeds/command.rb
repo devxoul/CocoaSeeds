@@ -1,13 +1,13 @@
 require 'colorize'
 
-module CocoaSeed
+module Seeds
   class Command
     def self.run(argv)
       case argv[0]
       when 'install'
-        CocoaSeed::Core.new(Dir.pwd).install
+        Seeds::Core.new(Dir.pwd).install
       when '--version'
-        puts CocoaSeed::VERSION
+        puts Seeds::VERSION
       else
         self.help
       end

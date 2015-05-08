@@ -1,4 +1,4 @@
-module CocoaSeed
+module Seeds
   class Seed
     attr_accessor :name, :version, :url, :files
 

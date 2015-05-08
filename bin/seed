@@ -2,4 +2,4 @@
 
 require 'cocoaseeds'
 
-CocoaSeed::Command.run(ARGV)
+Seeds::Command.run(ARGV)

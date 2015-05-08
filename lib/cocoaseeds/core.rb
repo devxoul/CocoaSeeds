@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'yaml'
 
-module CocoaSeed
+module Seeds
   class Core
     attr_reader :root_path, :seedfile_path, :lockfile_path
     attr_accessor :project, :seedfile, :lockfile
@@ -60,7 +60,7 @@ module CocoaSeed
       if self.lockfile
         locks = YAML.load(self.lockfile)
         locks["SEEDS"].each do |lock|
-          seed = CocoaSeed::Seed.new
+          seed = Seeds::Seed.new
           seed.name = lock.split(' (')[0]
           seed.version = lock.split('(')[1].split(')')[0]
           self.locks[seed.name] = seed
@@ -72,7 +72,7 @@ module CocoaSeed
     end
 
     def github(repo, tag, options={})
-      seed = CocoaSeed::Seed::GitHub.new
+      seed = Seeds::Seed::GitHub.new
       seed.url = "https://github.com/#{repo}"
       seed.name = repo.split('/')[1]
       seed.version = tag

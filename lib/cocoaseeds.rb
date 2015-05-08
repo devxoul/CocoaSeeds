@@ -1,6 +1,6 @@
 require 'xcodeproj'
 
-module CocoaSeed
+module Seeds
   require 'cocoaseeds/version'
 
   autoload :Command,  'cocoaseeds/command'
