@@ -2,6 +2,7 @@ CocoaSeeds
 ==========
 
 [![Gem](https://img.shields.io/gem/v/cocoaseeds.svg)](https://rubygems.org/gems/cocoaseeds)
+[![Build Status](https://travis-ci.org/devxoul/CocoaSeeds.svg?branch=master)](https://travis-ci.org/devxoul/CocoaSeeds)
 
 Git Submodule Alternative for Cocoa.
 
