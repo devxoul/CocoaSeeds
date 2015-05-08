@@ -1,6 +1,3 @@
-require 'fileutils'
-require 'yaml'
-
 module Seeds
   class Core
     attr_reader :root_path, :seedfile_path, :lockfile_path

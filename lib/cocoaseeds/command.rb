@@ -1,5 +1,3 @@
-require 'colorize'
-
 module Seeds
   class Command
     def self.run(argv)
