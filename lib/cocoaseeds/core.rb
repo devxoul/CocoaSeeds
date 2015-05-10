@@ -2,7 +2,7 @@ module Seeds
   class Core
     attr_reader :root_path, :seedfile_path, :lockfile_path
     attr_accessor :project, :seedfile, :lockfile
-    attr_reader :seeds, :locks
+    attr_reader :seeds, :locks, :targets
     attr_reader :source_files, :file_references
 
     def initialize(root_path)
@@ -11,6 +11,7 @@ module Seeds
       @lockfile_path = File.join(root_path, "Seeds", "Seedfile.lock")
       @seeds = {}
       @locks = {}
+      @targets = {}
       @source_files = {}
       @file_references = []
     end
@@ -18,6 +19,7 @@ module Seeds
     def install
       self.prepare_requirements
       self.analyze_dependencies
+      self.execute_seedfile
       self.remove_seeds
       self.install_seeds
       self.configure_project
@@ -65,21 +67,39 @@ module Seeds
           self.locks[seed.name] = seed
         end
       end
-
-      # Seedfile
-      eval self.seedfile
     end
 
-    def github(repo, tag, options={})
-      seed = Seeds::Seed::GitHub.new
-      seed.url = "https://github.com/#{repo}"
-      seed.name = repo.split('/')[1]
-      seed.version = tag
-      seed.files = options[:files] || '**/*.{h,m,mm,swift}'
-      if seed.files.kind_of?(String)
-        seed.files = [seed.files]
+    def execute_seedfile
+      def target(*names, &code)
+        names.each do |name|
+          @current_target_name = name.to_s
+          code.call()
+        end
       end
-      self.seeds[seed.name] = seed
+
+      def github(repo, tag, options={})
+        if not @current_target_name  # apply to all targets
+          target *self.project.targets.map(&:name) do
+            send(__callee__, repo, tag, options)
+          end
+          @current_target_name = nil
+        else
+          seed = Seeds::Seed::GitHub.new
+          seed.url = "https://github.com/#{repo}"
+          seed.name = repo.split('/')[1]
+          seed.version = tag
+          seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+          if seed.files.kind_of?(String)
+            seed.files = [seed.files]
+          end
+          self.seeds[seed.name] = seed
+          self.targets[@current_target_name] ||= []
+          self.targets[@current_target_name] << seed
+        end
+      end
+
+      eval seedfile
+      @current_target_name = nil
     end
 
     def remove_seeds
@@ -157,17 +177,9 @@ module Seeds
     end
 
     def configure_phase
-      targets = self.project.targets.select do |t|
-        not t.name.end_with?('Tests')
-      end
-
-      targets.each do |target|
-        # detect 'Compile Sources' build phase
-        phases = target.build_phases.select do |phase|
-          phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
-        end
-        phase = phases[0]
-
+      self.targets.each do |target_name, seeds|
+        target = self.project.target_named(target_name)
+        phase = target.sources_build_phase
         if not phase
           raise Seeds::Exception.new\
             "Target `#{target}` doesn't have build phase 'Compile Sources'."
@@ -183,8 +195,9 @@ module Seeds
         end
 
         # add file references to sources build phase
+        seed_names = seeds.map { |seed| seed.name }
         self.file_references.each do |file|
-          if not phase.include?(file)
+          if not phase.include?(file) and seed_names.include?(file.parent.name)
             phase.add_file_reference(file)
           end
         end

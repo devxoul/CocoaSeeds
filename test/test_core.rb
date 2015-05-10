@@ -17,6 +17,7 @@ class CoreTest < Minitest::Test
     @project_filename = File.join(@project_dirname, "TestProj.xcodeproj")
     project = Xcodeproj::Project.new(@project_filename)
     project.new_target(:application, "TestProj", :ios)
+    project.new_target(:test, "TestProjTests", :ios)
     project.save
 
     # cocoaseeds
@@ -63,6 +64,57 @@ class CoreTest < Minitest::Test
     self.project["Seeds"]["JLToast"].files.each do |file|
       assert_match /.*\.(h|swift)/, file.name
     end
+
+    self.project.targets.each do |target|
+      phase = target.sources_build_phase
+      assert phase.files.length > 0
+      phase.file_display_names.each do |filename|
+        assert_match /.*\.(h|swift)/, filename
+      end
+    end
+  end
+
+  def test_install_target
+    seedfile %{
+      target :TestProjTests do
+        github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+      end
+    }
+    @seed.install
+
+    refute self.project.target_named(:TestProj)\
+                       .sources_build_phase\
+                       .include_filename?(/.*\.(h|swift)/)
+    assert self.project.target_named(:TestProjTests)\
+                       .sources_build_phase\
+                       .include_filename?(/.*\.(h|swift)/)
+  end
+
+  def test_install_separated_target
+    seedfile %{
+      target :TestProj do
+        github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+      end
+
+      target :TestProjTests do
+        github "devxoul/SwipeBack", "1.0.4", :files => "SwipeBack/*.{h,m}"
+      end
+    }
+    @seed.install
+
+    assert self.project.target_named(:TestProj)\
+                       .sources_build_phase\
+                       .include_filename?(/JLToast.*\.(h|swift)/)
+    refute self.project.target_named(:TestProj)\
+                       .sources_build_phase\
+                       .include_filename?(/.*SwipeBack\.(h|m)/)
+
+    assert self.project.target_named(:TestProjTests)\
+                       .sources_build_phase\
+                       .include_filename?(/.*SwipeBack\.(h|m)/)
+    refute self.project.target_named(:TestProjTests)\
+                       .sources_build_phase\
+                       .include_filename?(/JLToast.*\.(h|swift)/)
   end
 
   def test_remove
