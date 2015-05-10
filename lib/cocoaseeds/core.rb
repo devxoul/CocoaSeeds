@@ -121,7 +121,7 @@ module Seeds
     end
 
     def install_seeds
-      self.seeds.each do |name, seed|
+      self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", name)
         if File.exist?(dirname)
           tag = `cd #{dirname} && git describe --tags --abbrev=0 2>&1`
