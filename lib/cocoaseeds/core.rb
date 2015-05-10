@@ -72,7 +72,15 @@ module Seeds
     def execute_seedfile
       def target(*names, &code)
         names.each do |name|
-          @current_target_name = name.to_s
+          name = name.to_s  # use string instead of symbol
+          @current_target_name = name
+
+          target = self.project.target_named(name)
+          if not target
+            raise Seeds::Exception.new\
+              "#{self.project.path.basename} doesn't have a target `#{name}`"
+          end
+
           code.call()
         end
       end

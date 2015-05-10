@@ -47,6 +47,15 @@ class CoreTest < Minitest::Test
     assert_raises Seeds::Exception do @seed.install end
   end
 
+  def test_raise_invalid_target
+    seedfile %{
+      target :InvalidTargetName do
+        github "devxoul/JLToast", "1.2.2"
+      end
+    }
+    assert_raises Seeds::Exception do @seed.install end
+  end
+
   def test_install
     seedfile %{
       github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
