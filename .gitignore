@@ -1,4 +1,8 @@
 .DS_Store
+
+*.sublime-project
+*.sublime-workspace
+
 .bundle
 *.gem
 Gemfile.lock
