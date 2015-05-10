@@ -4,7 +4,7 @@ CocoaSeeds
 [![Gem](https://img.shields.io/gem/v/cocoaseeds.svg)](https://rubygems.org/gems/cocoaseeds)
 [![Build Status](https://travis-ci.org/devxoul/CocoaSeeds.svg?branch=master)](https://travis-ci.org/devxoul/CocoaSeeds)
 
-Git Submodule Alternative for Cocoa.
+Git Submodule Alternative for Cocoa. Inspired by [CocoaPods](https://cocoapods.org).
 
 
 Why?
@@ -31,22 +31,32 @@ Seedfile
 
 You have to write a **Seedfile** in the same directory with **.xcodeproj**.
 
-```ruby
-github 'Alamofire/Alamofire', '1.2.1', :files => 'Source/*.{swift,h}'
-github 'devxoul/JLToast', '1.2.2', :files => 'JLToast/*.{swift,h}'
-github 'Masonry/SnapKit', '0.10.0', :files => 'Source/*.{swift,h}'
-```
-
 <pre>
 MyProject/
 |-- MyProject/
 |   |-- AppDelegate.swift
 |   `-- ...
 |-- MyProject.xcodeproj
-|-- <b>Seedfile</b>
+|-- <b><i>Seedfile</i></b>
 `-- ...
 </pre>
 
+
+**Seedfile**
+
+```ruby
+# seeds for all targets
+github "Alamofire/Alamofire", "1.2.1", :files => "Source/*.{swift,h}"
+github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{swift,h}"
+github "devxoul/SwipeBack", "1.0.4"  # files default: */**.{h,m,mm,swift}
+github "Masonry/SnapKit", "0.10.0", :files => "Source/*.{swift,h}"
+
+# seeds for specific target
+target :MyAppTest do
+  github "Quick/Quick", "v0.3.1", :files => "Quick/**.{swift,h}"
+  github "Quick/Nimble", "v0.4.2", :files => "Nimble/**.{swift,h}"
+end
+```
 
 Using CocoaSeeds
 ----------------
