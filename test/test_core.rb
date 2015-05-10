@@ -22,6 +22,7 @@ class CoreTest < Minitest::Test
 
     # cocoaseeds
     @seed = Seeds::Core.new(@project_dirname)
+    @seed.mute = true
   end
 
   def teardown

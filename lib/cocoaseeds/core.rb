@@ -1,5 +1,7 @@
 module Seeds
   class Core
+    attr_accessor :mute
+
     attr_reader :root_path, :seedfile_path, :lockfile_path
     attr_accessor :project, :seedfile, :lockfile
     attr_reader :seeds, :locks, :targets
@@ -56,7 +58,7 @@ module Seeds
     end
 
     def analyze_dependencies
-      puts "Anaylizing dependencies"
+      say "Anaylizing dependencies"
 
       # Seedfile.lock
       if self.lockfile
@@ -114,7 +116,7 @@ module Seeds
     def remove_seeds
       removings = self.locks.keys - self.seeds.keys
       removings.each do |name|
-        puts "Removing #{name} (#{self.locks[name].version})".red
+        say "Removing #{name} (#{self.locks[name].version})".red
         dirname = File.join(self.root_path, "Seeds", name)
         FileUtils.rm_rf(dirname)
       end
@@ -127,9 +129,9 @@ module Seeds
           tag = `cd #{dirname} && git describe --tags --abbrev=0 2>&1`
           tag.strip!
           if tag == seed.version
-            puts "Using #{name} (#{seed.version})"
+            say "Using #{name} (#{seed.version})"
           else
-            puts "Installing #{name} #{seed.version} (was #{tag})".green
+            say "Installing #{name} #{seed.version} (was #{tag})".green
             `cd #{dirname} 2>&1 &&\
              git reset HEAD --hard 2>&1 &&\
              git checkout . 2>&1 &&\
@@ -138,13 +140,13 @@ module Seeds
              git checkout #{seed.version} 2>&1`
           end
         else
-          puts "Installing #{name} (#{seed.version})".green
+          say "Installing #{name} (#{seed.version})".green
           output = `git clone #{seed.url} -b #{seed.version} #{dirname} 2>&1`
           if output.include?("not found")
             if output.include?("repository")
-              puts "[!] #{name}: Couldn't find the repository.".red
+              say "[!] #{name}: Couldn't find the repository.".red
             elsif output.include?("upstream")
-              puts "[!] #{name}: Couldn't find the tag `#{seed.version}`.".red
+              say "[!] #{name}: Couldn't find the tag `#{seed.version}`.".red
             end
           end
         end
@@ -158,7 +160,7 @@ module Seeds
     end
 
     def configure_project
-      puts "Configuring #{self.project.path.basename}"
+      say "Configuring #{self.project.path.basename}"
 
       group = self.project["Seeds"]
       if group
@@ -232,6 +234,10 @@ module Seeds
         end
         File.write(self.lockfile_path, YAML.dump(tree))
       end
+    end
+
+    def say(*strings)
+      puts strings.join(" ") if not @mute
     end
 
   end
