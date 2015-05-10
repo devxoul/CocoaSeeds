@@ -144,4 +144,33 @@ class CoreTest < Minitest::Test
       "Group 'Seeds/JLToast' exists in the project."
   end
 
+  def test_uuid_preserve
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+    }
+    @seed.install
+
+    uuids_before = []
+    uuids_before << self.project["Seeds"]["JLToast"].uuid
+    self.project["Seeds"]["JLToast"].files.each do |f|
+      uuids_before << f.uuid
+    end
+
+    seedfile nil
+    @seed.install
+
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+    }
+    @seed.install
+
+    uuids_after = []
+    uuids_after << self.project["Seeds"]["JLToast"].uuid
+    self.project["Seeds"]["JLToast"].files.each do |f|
+      uuids_after << f.uuid
+    end
+
+    assert_equal uuids_before, uuids_after
+  end
+
 end

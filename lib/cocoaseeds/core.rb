@@ -28,6 +28,7 @@ module Seeds
       self.build_lockfile
       @seeds = {}
       @locks = {}
+      @targets = {}
       @source_files = {}
       @file_references = []
     end
@@ -120,7 +121,7 @@ module Seeds
     end
 
     def install_seeds
-      self.seeds.each do |name, seed|
+      self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", name)
         if File.exist?(dirname)
           tag = `cd #{dirname} && git describe --tags --abbrev=0 2>&1`
@@ -159,7 +160,13 @@ module Seeds
     def configure_project
       puts "Configuring #{self.project.path.basename}"
 
-      group = self.project['Seeds'] || self.project.new_group('Seeds')
+      group = self.project["Seeds"]
+      if group
+        group.clear
+      else
+        uuid = Digest::MD5.hexdigest("Seeds").upcase
+        group = self.project.new_group_with_uuid("Seeds", uuid)
+      end
 
       # remove existing group that doesn't have any file references
       group.groups.each do |seedgroup|
@@ -172,10 +179,14 @@ module Seeds
       end
 
       self.source_files.each do |seedname, filepaths|
-        seedgroup = group[seedname] || group.new_group(seedname)
+        uuid = Digest::MD5.hexdigest("Seeds/#{seedname}").upcase
+        seedgroup = group[seedname] ||
+                    group.new_group_with_uuid(seedname, uuid)
         filepaths.each do |path|
           filename = path.split('/')[-1]
-          file_reference = seedgroup[filename] || seedgroup.new_file(path)
+          uuid = Digest::MD5.hexdigest(path).upcase
+          file_reference = seedgroup[filename] ||
+                           seedgroup.new_reference_with_uuid(path, uuid)
           self.file_references << file_reference
         end
 
@@ -206,7 +217,8 @@ module Seeds
         seed_names = seeds.map { |seed| seed.name }
         self.file_references.each do |file|
           if not phase.include?(file) and seed_names.include?(file.parent.name)
-            phase.add_file_reference(file)
+            uuid = Digest::MD5.hexdigest("#{target_name}:#{file.name}").upcase
+            phase.add_file_reference_with_uuid(file, uuid, true)
           end
         end
       end
