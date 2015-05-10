@@ -192,11 +192,14 @@ module Seeds
     end
 
     def build_lockfile
-      tree = { "SEEDS" => [] }
-      self.seeds.each do |name, seed|
-        tree["SEEDS"] << "#{name} (#{seed.version})"
+      if self.seeds.length > 0
+        tree = { "SEEDS" => [] }
+        self.seeds.each do |name, seed|
+          tree["SEEDS"] << "#{name} (#{seed.version})"
+        end
+        File.write(self.lockfile_path, YAML.dump(tree))
       end
-      File.write(self.lockfile_path, YAML.dump(tree))
     end
+
   end
 end
