@@ -33,6 +33,10 @@ class CoreTest < Minitest::Test
     Xcodeproj::Project.open(@project_filename)
   end
 
+  def phase(target_name)
+    self.project.target_named(target_name).sources_build_phase
+  end
+
   def seedfile(content)
     path = File.join(@project_dirname, "Seedfile")
     content = content ? content.strip.sub(/^\s+/, '') : ''
@@ -92,12 +96,8 @@ class CoreTest < Minitest::Test
     }
     @seed.install
 
-    refute self.project.target_named(:TestProj)\
-                       .sources_build_phase\
-                       .include_filename?(/.*\.(h|swift)/)
-    assert self.project.target_named(:TestProjTests)\
-                       .sources_build_phase\
-                       .include_filename?(/.*\.(h|swift)/)
+    refute self.phase(:TestProj).include_filename?(/.*\.(h|swift)/)
+    assert self.phase(:TestProjTests).include_filename?(/.*\.(h|swift)/)
   end
 
   def test_install_separated_target
@@ -112,19 +112,10 @@ class CoreTest < Minitest::Test
     }
     @seed.install
 
-    assert self.project.target_named(:TestProj)\
-                       .sources_build_phase\
-                       .include_filename?(/JLToast.*\.(h|swift)/)
-    refute self.project.target_named(:TestProj)\
-                       .sources_build_phase\
-                       .include_filename?(/.*SwipeBack\.(h|m)/)
-
-    assert self.project.target_named(:TestProjTests)\
-                       .sources_build_phase\
-                       .include_filename?(/.*SwipeBack\.(h|m)/)
-    refute self.project.target_named(:TestProjTests)\
-                       .sources_build_phase\
-                       .include_filename?(/JLToast.*\.(h|swift)/)
+    assert self.phase(:TestProj).include_filename?(/JLToast.*\.(h|swift)/)
+    refute self.phase(:TestProj).include_filename?(/.*SwipeBack\.(h|m)/)
+    assert self.phase(:TestProjTests).include_filename?(/.*SwipeBack\.(h|m)/)
+    refute self.phase(:TestProjTests).include_filename?(/JLToast.*\.(h|swift)/)
   end
 
   def test_remove
