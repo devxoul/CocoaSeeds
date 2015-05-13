@@ -2,6 +2,10 @@ module Xcodeproj
 
   class Project
 
+    # Creates a new object with given UUID.
+    #
+    # @param [String] uuid UUID of the object.
+    #
     def new_with_uuid(klass, uuid)
       if klass.is_a?(String)
         klass = Object.const_get(klass)
@@ -11,10 +15,17 @@ module Xcodeproj
       object
     end
 
+    # Creates a new group with given UUID.
+    #
+    # @param [String] uuid UUID of the object.
+    #
     def new_group_with_uuid(name, uuid, path = nil, source_tree = :group)
       main_group.new_group_with_uuid(name, uuid, path, source_tree)
     end
 
+    # @param [String] name The name of target.
+    # @return the target with given name
+    #
     def target_named(name)
       self.targets.each do |target|
         if target.name == name.to_s
@@ -31,6 +42,11 @@ end
 module Xcodeproj::Project::Object
 
   class PBXGroup
+
+    # Creates a new group with given UUID.
+    #
+    # @param [String] uuid UUID of the object.
+    #
     def new_group_with_uuid(name, uuid, path = nil, source_tree = :group)
       group = project.new_with_uuid(PBXGroup, uuid)
       children << group
@@ -40,6 +56,11 @@ module Xcodeproj::Project::Object
       group
     end
 
+
+    # Creates a file reference with given UUID.
+    #
+    # @param [String] uuid UUID of the object.
+    #
     def new_reference_with_uuid(path, uuid, source_tree = :group)
       # customize `FileReferencesFactory.new_file_reference`
       path = Pathname.new(path)
@@ -62,6 +83,9 @@ module Xcodeproj::Project::Object
   end
 
   class PBXNativeTarget
+
+    # @return 'Sources Build Phase' or `nil`
+    #
     def sources_build_phase()
       self.build_phases.each do |phase|
         if phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
@@ -73,6 +97,11 @@ module Xcodeproj::Project::Object
   end
 
   class PBXSourcesBuildPhase
+
+    # Adds the file reference with given UUID.
+    #
+    # @param [String] uuid UUID of the object.
+    #
     def add_file_reference_with_uuid(file_ref, uuid, avoid_duplicates = false)
       if avoid_duplicates && existing = build_file(file_ref)
         existing
@@ -84,6 +113,9 @@ module Xcodeproj::Project::Object
       end
     end
 
+    # @return whether the file names match the pattern.
+    # @param [Regexp] pattern The pattern of file name.
+    #
     def include_filename?(pattern)
       self.file_display_names.each do |filename|
         return true if filename.match pattern
