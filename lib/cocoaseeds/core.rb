@@ -73,19 +73,21 @@ module Seeds
     end
 
     def execute_seedfile
+      @current_target_name = nil
+
       def target(*names, &code)
         names.each do |name|
           name = name.to_s  # use string instead of symbol
-          @current_target_name = name
-
           target = self.project.target_named(name)
           if not target
             raise Seeds::Exception.new\
               "#{self.project.path.basename} doesn't have a target `#{name}`"
           end
 
+          @current_target_name = name
           code.call()
         end
+        @current_target_name = nil
       end
 
       def github(repo, tag, options={})
@@ -93,7 +95,6 @@ module Seeds
           target *self.project.targets.map(&:name) do
             send(__callee__, repo, tag, options)
           end
-          @current_target_name = nil
         else
           seed = Seeds::Seed::GitHub.new
           seed.url = "https://github.com/#{repo}"
@@ -110,7 +111,6 @@ module Seeds
       end
 
       eval seedfile
-      @current_target_name = nil
     end
 
     def remove_seeds
