@@ -118,6 +118,48 @@ class CoreTest < Minitest::Test
     refute self.phase(:TestProjTests).include_filename?(/JLToast.*\.(h|swift)/)
   end
 
+  def test_install_common_before_separated_target
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+
+      target :TestProjTests do
+        github "devxoul/SwipeBack", "1.0.4", :files => "SwipeBack/*.{h,m}"
+      end
+    }
+    @seed.install
+
+    assert\
+      self.phase(:TestProj).include_filename?(/JLToast.*\.(h|swift)/),
+      "TestProj should have JLToast files."
+    assert\
+      self.phase(:TestProjTests).include_filename?(/.*SwipeBack\.(h|m)/),
+      "TestProjTests should have SwipeBack files."
+    assert\
+      self.phase(:TestProjTests).include_filename?(/JLToast.*\.(h|swift)/),
+      "TestProjTests should have JLToast files."
+  end
+
+  def test_install_common_after_separated_target
+    seedfile %{
+      target :TestProjTests do
+        github "devxoul/SwipeBack", "1.0.4", :files => "SwipeBack/*.{h,m}"
+      end
+
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+    }
+    @seed.install
+
+    assert\
+      self.phase(:TestProj).include_filename?(/JLToast.*\.(h|swift)/),
+      "TestProj should have JLToast files."
+    assert\
+      self.phase(:TestProjTests).include_filename?(/.*SwipeBack\.(h|m)/),
+      "TestProjTests should have SwipeBack files."
+    assert\
+      self.phase(:TestProjTests).include_filename?(/JLToast.*\.(h|swift)/),
+      "TestProjTests should have JLToast files."
+  end
+
   def test_remove
     seedfile %{
       github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
