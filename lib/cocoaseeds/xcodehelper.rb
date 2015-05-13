@@ -85,17 +85,11 @@ module Xcodeproj::Project::Object
     end
 
     def include_filename?(pattern)
-      filenames = self.file_display_names
-      if filenames.length == 0 and pattern
-        return false
+      self.file_display_names.each do |filename|
+        return true if filename.match pattern
       end
-      filenames.each do |filename|
-        if not filename.match pattern
-          return false
-        end
-      end
-      return true
+      false
     end
-  end
 
+  end
 end
