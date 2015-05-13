@@ -131,6 +131,10 @@ class CoreTest < Minitest::Test
     assert\
       self.phase(:TestProj).include_filename?(/JLToast.*\.(h|swift)/),
       "TestProj should have JLToast files."
+    refute\
+      self.phase(:TestProj).include_filename?(/.*SwipeBack\.(h|m)/),
+      "TestProj shouldn't have SwipeBack files."
+
     assert\
       self.phase(:TestProjTests).include_filename?(/.*SwipeBack\.(h|m)/),
       "TestProjTests should have SwipeBack files."
@@ -152,6 +156,10 @@ class CoreTest < Minitest::Test
     assert\
       self.phase(:TestProj).include_filename?(/JLToast.*\.(h|swift)/),
       "TestProj should have JLToast files."
+    refute\
+      self.phase(:TestProj).include_filename?(/.*SwipeBack\.(h|m)/),
+      "TestProj shouldn't have SwipeBack files."
+
     assert\
       self.phase(:TestProjTests).include_filename?(/.*SwipeBack\.(h|m)/),
       "TestProjTests should have SwipeBack files."
