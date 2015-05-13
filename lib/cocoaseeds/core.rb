@@ -371,13 +371,11 @@ module Seeds
     # @!visibility private
     #
     def build_lockfile
-      if self.seeds.length > 0
-        tree = { "SEEDS" => [] }
-        self.seeds.each do |name, seed|
-          tree["SEEDS"] << "#{name} (#{seed.version})"
-        end
-        File.write(self.lockfile_path, YAML.dump(tree))
+      tree = { "SEEDS" => [] }
+      self.seeds.each do |name, seed|
+        tree["SEEDS"] << "#{name} (#{seed.version})"
       end
+      File.write(self.lockfile_path, YAML.dump(tree))
     end
 
     # Prints a message if {#mute} is `false`.
