@@ -1,12 +1,81 @@
 module Seeds
   class Core
+
+    # @return [String] project folder path
+    #
+    attr_reader :root_path
+
+    # @return [Boolean] whether display outputs
+    #
     attr_accessor :mute
 
-    attr_reader :root_path, :seedfile_path, :lockfile_path
-    attr_accessor :project, :seedfile, :lockfile
-    attr_reader :seeds, :locks, :targets
-    attr_reader :source_files, :file_references
+    # @return [String] Seedfile path
+    #
+    # @!visibility private
+    #
+    attr_reader :seedfile_path
 
+    # @return [String] Seedfile.lock path
+    #
+    # @!visibility private
+    #
+    attr_reader :lockfile_path
+
+    # @return [Xcodeproj::Project] Xcode project
+    #
+    # @!visibility private
+    #
+    attr_accessor :project
+
+    # @return [String] content of Seedfile
+    #
+    # @!visibility private
+    #
+    attr_accessor :seedfile
+
+    # @return [String] content of Seedfile.lock
+    #
+    # @!visibility private
+    #
+    attr_accessor :lockfile
+
+    # @return [Hash{Sting => Seeds::Seed}] seeds by seed name
+    #
+    # @!visibility private
+    #
+    attr_reader :seeds
+
+    # @return [Hash{Sting => Seeds::Seed}] locked dependencies by seed name
+    #
+    # @!visibility private
+    #
+    attr_reader :locks
+
+    # @return [Hash{Sting => String}] target name by seed name
+    #
+    # @!visibility private
+    #
+    attr_reader :targets
+
+    # @return [Hash{Sting => Seeds::Seed}] source file paths by seed name
+    #
+    # @!visibility private
+    #
+    attr_reader :source_files
+
+    # @return [Array<Xcodeproj::Project::Object::PBXFileReference>]
+    #         file references that will be added to project
+    #
+    # @!visibility private
+    #
+    attr_reader :file_references
+
+    # @param  [String] root_path
+    #         The path provided will be used for detecting Xcode project and
+    #         Seedfile.
+    #
+    # @see #root_path
+    #
     def initialize(root_path)
       @root_path = root_path
       @seedfile_path = File.join(root_path, "Seedfile")
@@ -18,6 +87,11 @@ module Seeds
       @file_references = []
     end
 
+    # Read Seedfile and install dependencies. An exception will be raised if
+    # there is no .xcodeproj file or Seedfile in the {#root_path}.
+    #
+    # @see #root_path
+    #
     def install
       self.prepare_requirements
       self.analyze_dependencies
@@ -35,6 +109,13 @@ module Seeds
       @file_references = []
     end
 
+    # Read Xcode project, Seedfile and lockfile. An exception will be raised if
+    # there is no .xcodeproj file or Seedfile in the {#root_path}.
+    #
+    # @see #root_path
+    #
+    # @!visibility private
+    #
     def prepare_requirements
       # .xcodeproj
       project_filename = Dir.glob("#{root_path}/*.xcodeproj")[0]
@@ -57,6 +138,12 @@ module Seeds
       end
     end
 
+    # Parses Seedfile.lockfile into {#lockfile}.
+    #
+    # @see #lockfile
+    #
+    # @!visibility private
+    #
     def analyze_dependencies
       say "Anaylizing dependencies"
 
@@ -72,9 +159,20 @@ module Seeds
       end
     end
 
+    # Executes {#seedfile} using `eval`
+    #
+    # @!visibility private
+    #
     def execute_seedfile
       @current_target_name = nil
 
+      # Sets `@current_target_name` and executes code block.
+      #
+      # @param [String] names The name of target.
+      #
+      # @!scope method
+      # @!visibility private
+      #
       def target(*names, &code)
         names.each do |name|
           name = name.to_s  # use string instead of symbol
@@ -90,6 +188,13 @@ module Seeds
         @current_target_name = nil
       end
 
+      # Creates a new instance of {#Seeds::Seed::GitHub} and adds to {#seeds}.
+      #
+      # @see #Seeds::Seed::GitHub
+      #
+      # @!scope method
+      # @!visibility private
+      #
       def github(repo, tag, options={})
         if not @current_target_name  # apply to all targets
           target *self.project.targets.map(&:name) do
@@ -113,6 +218,10 @@ module Seeds
       eval seedfile
     end
 
+    # Removes disused seeds.
+    #
+    # @!visibility private
+    #
     def remove_seeds
       removings = self.locks.keys - self.seeds.keys
       removings.each do |name|
@@ -122,6 +231,10 @@ module Seeds
       end
     end
 
+    # Installs new seeds or updates existing seeds.
+    #
+    # @!visibility private
+    #
     def install_seeds
       self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", name)
@@ -159,6 +272,13 @@ module Seeds
       end
     end
 
+    # Adds source files to the group 'Seeds' and save its reference to
+    # {#file_references} and removes disused sources files,
+    #
+    # @see #file_references
+    #
+    # @!visibility private
+    #
     def configure_project
       say "Configuring #{self.project.path.basename}"
 
@@ -197,6 +317,10 @@ module Seeds
       end
     end
 
+    # Adds file references to the 'Sources Build Phase'.
+    #
+    # @!visibility private
+    #
     def configure_phase
       self.project.targets.each do |target|
         phase = target.sources_build_phase
@@ -242,6 +366,10 @@ module Seeds
       end
     end
 
+    # Writes Seedfile.lock file.
+    #
+    # @!visibility private
+    #
     def build_lockfile
       if self.seeds.length > 0
         tree = { "SEEDS" => [] }
@@ -252,6 +380,10 @@ module Seeds
       end
     end
 
+    # Prints a message if {#mute} is `false`.
+    #
+    # @see #mute
+    #
     def say(*strings)
       puts strings.join(" ") if not @mute
     end

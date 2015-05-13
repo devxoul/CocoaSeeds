@@ -1,14 +1,33 @@
 module Seeds
   class Seed
-    attr_accessor :name, :version, :url, :files
 
+    # @return [String] the name of the seed
+    #
+    attr_accessor :name
+
+    # @return [String] the version of the seed
+    #
+    attr_accessor :version
+
+    # @return [String] the url of the seed
+    #
+    attr_accessor :url
+
+    # @return [Array<String>] the source file patterns of the seed
+    #
+    attr_accessor :files
+
+    # @return [String] lockfile-formatted string
+    #
+    # @example JLToast (1.2.2)
+    #
     def to_s
       "#{self.name} (#{self.version})"
     end
 
     class GitHub < Seed
       def to_s
-        "#{self.name} (#{self.version}) #{files}"
+        "#{self.name} (#{self.version})"
       end
     end
   end
