@@ -6,7 +6,7 @@ require 'yaml'
 
 module Seeds
   require 'cocoaseeds/version'
-  require_relative 'cocoaseeds/xcodehelper'
+  require 'cocoaseeds/xcodehelper'
 
   autoload :Command,   'cocoaseeds/command'
   autoload :Core,      'cocoaseeds/core'
