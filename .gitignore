@@ -4,6 +4,8 @@
 *.sublime-workspace
 
 .bundle
+.yardoc
+doc
 *.gem
 Gemfile.lock
 test/TestProj
