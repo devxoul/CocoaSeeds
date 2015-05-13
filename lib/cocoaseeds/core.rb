@@ -105,8 +105,8 @@ module Seeds
             seed.files = [seed.files]
           end
           self.seeds[seed.name] = seed
-          self.targets[@current_target_name] ||= []
-          self.targets[@current_target_name] << seed
+          self.targets[seed.name] ||= []
+          self.targets[seed.name] << @current_target_name.to_s
         end
       end
 
@@ -198,28 +198,44 @@ module Seeds
     end
 
     def configure_phase
-      self.targets.each do |target_name, seeds|
-        target = self.project.target_named(target_name)
+      self.project.targets.each do |target|
         phase = target.sources_build_phase
-        if not phase
-          raise Seeds::Exception.new\
-            "Target `#{target}` doesn't have build phase 'Compile Sources'."
-        end
+        next if not phase
 
-        # remove zombie file references
-        phase.files_references.each do |file_reference|
+        # remove zombie build files
+        phase.files_references.each do |file|
           begin
-            file_reference.real_path
+            file.real_path
           rescue
-            phase.remove_file_reference(file_reference)
+            phase.files.each do |build_file|
+              phase.files.delete(build_file) if build_file.file_ref == file
+            end
           end
         end
 
-        # add file references to sources build phase
-        seed_names = seeds.map { |seed| seed.name }
+        removings = [] # name of seeds going to be removed from the target
+        addings = [] # name of seeds going to be added to the target
+
+        self.targets.keys.sort.each do |seed_name|
+          target_names = self.targets[seed_name]
+          if not target_names.include?(target.name)
+            removings << seed_name if not removings.include?(seed_name)
+          else
+            addings << seed_name if not addings.include?(seed_name)
+          end
+        end
+
         self.file_references.each do |file|
-          if not phase.include?(file) and seed_names.include?(file.parent.name)
-            uuid = Digest::MD5.hexdigest("#{target_name}:#{file.name}").upcase
+          removings.each do |seed_names|
+            next if not seed_names.include?(file.parent.name)
+            phase.files.each do |build_file|
+              phase.files.delete(build_file) if build_file.file_ref == file
+            end
+          end
+
+          addings.each do |seed_names|
+            next if not seed_names.include?(file.parent.name)
+            uuid = Digest::MD5.hexdigest("#{target.name}:#{file.name}").upcase
             phase.add_file_reference_with_uuid(file, uuid, true)
           end
         end
