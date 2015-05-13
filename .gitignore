@@ -6,4 +6,5 @@
 .bundle
 *.gem
 Gemfile.lock
+test/TestProj
 
