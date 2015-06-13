@@ -200,6 +200,10 @@ module Seeds
           target *self.project.targets.map(&:name) do
             send(__callee__, repo, tag, options)
           end
+        elsif repo.split('/').count != 2
+          raise Seeds::Exception.new\
+          "#{repo}: GitHub should have both username and repo name.\n"\
+          "    (e.g. `devxoul/JLToast`)"
         else
           seed = Seeds::Seed::GitHub.new
           seed.url = "https://github.com/#{repo}"
