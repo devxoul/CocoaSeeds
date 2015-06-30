@@ -29,7 +29,7 @@ module Seeds
                   'repos/devxoul/CocoaSeeds/releases/latest')
         data = JSON(Net::HTTP.get(uri))
         latest = data["tag_name"]
-        if VERSION < latest
+        if Gem::Version.new(VERSION) < Gem::Version.new(latest)
           puts\
             "\nCocoaSeeds #{latest} is available."\
             " (You're using #{VERSION})\n"\
