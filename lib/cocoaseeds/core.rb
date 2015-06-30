@@ -362,6 +362,7 @@ module Seeds
           end
 
           addings.each do |seed_names|
+            next if file.name.end_with? ".h"
             next if not seed_names.include?(file.parent.name)
             uuid = Digest::MD5.hexdigest("#{target.name}:#{file.name}").upcase
             phase.add_file_reference_with_uuid(file, uuid, true)
