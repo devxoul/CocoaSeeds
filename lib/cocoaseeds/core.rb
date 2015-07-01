@@ -253,7 +253,7 @@ module Seeds
              git reset HEAD --hard 2>&1 &&\
              git checkout . 2>&1 &&\
              git clean -fd 2>&1 &&\
-             git fetch origin #{seed.version} 2>&1 &&\
+             git fetch origin #{seed.version} --tags 2>&1 &&\
              git checkout #{seed.version} 2>&1`
           end
         else
