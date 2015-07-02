@@ -269,8 +269,9 @@ module Seeds
         end
 
         if seed.files
+          self.source_files[name] = []
           seed.files.each do |file|
-            self.source_files[name] = Dir.glob(File.join(dirname, file))
+            self.source_files[name] += Dir.glob(File.join(dirname, file))
           end
         end
       end
