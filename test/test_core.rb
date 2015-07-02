@@ -95,6 +95,34 @@ class CoreTest < Minitest::Test
     end
   end
 
+  def test_install_multiple_files
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2",
+             :files => ["JLToast/JLToast.h", "JLToast/JLToast.swift"]
+    }
+    @seed.install
+
+    assert\
+      File.exists?(File.join(@seeds_dirname, "JLToast")),
+      "Directory Seeds/JLToast not exists."
+
+    refute_nil\
+      self.project["Seeds"]["JLToast"],
+      "Group 'Seeds/JLToast' not exists in the project."
+
+    self.project["Seeds"]["JLToast"].files.each do |file|
+      assert_match /.*\.(h|swift)/, file.name
+    end
+
+    self.project.targets.each do |target|
+      phase = target.sources_build_phase
+      assert phase.files.length > 0
+      phase.file_display_names.each do |filename|
+        assert_match /.*\.(h|swift)/, filename
+      end
+    end
+  end
+
   def test_install_target
     seedfile %{
       target :TestProjTests do
