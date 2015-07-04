@@ -70,6 +70,12 @@ module Seeds
     #
     attr_reader :file_references
 
+    # @return [Boolean] whether append seed name as a prefix to swift files
+    #
+    # @!visibility private
+    #
+    attr_accessor :swift_seedname_prefix
+
     # @param  [String] root_path
     #         The path provided will be used for detecting Xcode project and
     #         Seedfile.
@@ -107,6 +113,7 @@ module Seeds
       @targets = {}
       @source_files = {}
       @file_references = []
+      @swift_seedname_prefix = false
     end
 
     # Read Xcode project, Seedfile and lockfile. An exception will be raised if
@@ -165,6 +172,15 @@ module Seeds
     #
     def execute_seedfile
       @current_target_name = nil
+
+      # Sets `@swift_seedname_prefix` as `true`.
+      #
+      # @!scope method
+      # @!visibility private
+      #
+      def swift_seedname_prefix!()
+        @swift_seedname_prefix = true
+      end
 
       # Sets `@current_target_name` and executes code block.
       #
@@ -271,10 +287,36 @@ module Seeds
         if seed.files
           self.source_files[name] = []
           seed.files.each do |file|
-            self.source_files[name] += Dir.glob(File.join(dirname, file))
+            paths = Dir.glob(File.join(dirname, file))
+            paths.each do |path|
+              path = self.path_with_prefix(seed.name, path)
+              self.source_files[name].push(path)
+            end
           end
         end
       end
+    end
+
+    # Append seed name as a prefix to file name and returns the path.
+    #
+    # @!visibility private
+    #
+    def path_with_prefix(seedname, path)
+      if @swift_seedname_prefix
+        components = path.split("/")
+        prefix = seedname + "_"  # Alamofire_
+        filename = components[-1]  # Alamofire.swift
+        extension = File.extname(filename)  # .swift
+
+        # only swift files can have prefix in filename
+        if extension == '.swift' and not filename.start_with? prefix
+          filename = prefix + filename  # Alamofire_Alamofire.swift
+          newpath = components[0...-1].join('/') + '/' + filename
+          File.rename(path, newpath)  # rename real files
+          path = newpath
+        end
+      end
+      path
     end
 
     # Adds source files to the group 'Seeds' and save its reference to
