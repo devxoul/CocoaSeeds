@@ -353,7 +353,8 @@ module Seeds
                     group.new_group_with_uuid(seedname, uuid)
         filepaths.each do |path|
           filename = path.split('/')[-1]
-          uuid = Digest::MD5.hexdigest(path).upcase
+          relpath = path[self.root_path.length..-1]
+          uuid = Digest::MD5.hexdigest(relpath).upcase
           file_reference = seedgroup[filename] ||
                            seedgroup.new_reference_with_uuid(path, uuid)
           self.file_references << file_reference
