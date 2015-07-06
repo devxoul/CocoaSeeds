@@ -70,8 +70,8 @@ Then all the source files will be automatically added to your Xcode project with
 ![Seeds-in-Xcode](https://cloud.githubusercontent.com/assets/931655/7502414/cbe45ecc-f476-11e4-9564-450e8887a054.png)
 
 
-Resolving Filename Conflicts
-----------------------------
+Resolving Filename Conflicts (Beta)
+-----------------------------------
 
 Since CocoaSeeds uses including source files directly than linking dynamic frameworks, it is important to make sure that all source file names are different. CocoaSeeds provides a way to do this:
 
