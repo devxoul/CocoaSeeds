@@ -36,6 +36,10 @@ module Xcodeproj
     end
 
   end
+
+  def self.uuid_with_name(name)
+      Digest::MD5.hexdigest(name).upcase[0,24]
+  end
 end
 
 
