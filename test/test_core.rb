@@ -221,6 +221,17 @@ class CoreTest < Minitest::Test
       "Group 'Seeds/JLToast' exists in the project."
   end
 
+  def test_uuid_length
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+    }
+    @seed.install
+
+    uuid = self.project["Seeds"]["JLToast"].uuid
+
+    assert uuid.length == 24, "UUID's should be 24 characters long"
+  end
+
   def test_uuid_preserve
     seedfile %{
       github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"

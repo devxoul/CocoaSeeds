@@ -333,7 +333,7 @@ module Seeds
       if group
         group.clear
       else
-        uuid = Digest::MD5.hexdigest("Seeds").upcase
+        uuid = Xcodeproj::uuid_with_name "Seeds"
         group = self.project.new_group_with_uuid("Seeds", uuid)
       end
 
@@ -348,13 +348,13 @@ module Seeds
       end
 
       self.source_files.each do |seedname, filepaths|
-        uuid = Digest::MD5.hexdigest("Seeds/#{seedname}").upcase
+        uuid = Xcodeproj::uuid_with_name "Seeds/#{seedname}"
         seedgroup = group[seedname] ||
                     group.new_group_with_uuid(seedname, uuid)
         filepaths.each do |path|
           filename = path.split('/')[-1]
           relpath = path[self.root_path.length..-1]
-          uuid = Digest::MD5.hexdigest(relpath).upcase
+          uuid = Xcodeproj::uuid_with_name relpath
           file_reference = seedgroup[filename] ||
                            seedgroup.new_reference_with_uuid(path, uuid)
           self.file_references << file_reference
@@ -408,7 +408,7 @@ module Seeds
           addings.each do |seed_names|
             next if file.name.end_with? ".h"
             next if not seed_names.include?(file.parent.name)
-            uuid = Digest::MD5.hexdigest("#{target.name}:#{file.name}").upcase
+            uuid = Xcodeproj::uuid_with_name "#{target.name}:#{file.name}"
             phase.add_file_reference_with_uuid(file, uuid, true)
           end
         end
