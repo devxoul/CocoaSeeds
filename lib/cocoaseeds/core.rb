@@ -263,6 +263,10 @@ module Seeds
           tag.strip!
           if tag == seed.version
             say "Using #{name} (#{seed.version})"
+            `cd #{dirname} 2>&1 &&\
+             git reset HEAD --hard 2>&1 &&\
+             git checkout . 2>&1 &&\
+             git clean -fd 2>&1`
           else
             say "Installing #{name} #{seed.version} (was #{tag})".green
             `cd #{dirname} 2>&1 &&\
