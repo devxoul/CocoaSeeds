@@ -258,17 +258,22 @@ module Seeds
     def install_seeds
       self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", name)
+
+        if lock = self.locks[name]
+          old_version = lock.version
+        end
+
         if File.exist?(dirname)
           tag = `cd #{dirname} && git describe --tags --abbrev=0 2>&1`
           tag.strip!
-          if tag == seed.version
+          if tag == seed.version and (not old_version or tag == old_version)
             say "Using #{name} (#{seed.version})"
             `cd #{dirname} 2>&1 &&\
              git reset HEAD --hard 2>&1 &&\
              git checkout . 2>&1 &&\
              git clean -fd 2>&1`
           else
-            say "Installing #{name} #{seed.version} (was #{tag})".green
+            say "Installing #{name} #{seed.version} (was #{old_version})".green
             `cd #{dirname} 2>&1 &&\
              git reset HEAD --hard 2>&1 &&\
              git checkout . 2>&1 &&\
