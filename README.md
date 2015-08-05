@@ -72,7 +72,7 @@ Want to use branch names instead of tags? See the [Branch support](#branch-suppo
 
 #### Specifying targets
 
-Third party libraries can be included as a specific target by creating a target block. For example, if you want to add some testing libraries such as Quick and Nimble as a test target, you can specify them like this:
+Third party libraries can be included as a specific target by creating a target block. For example, if you want to add some testing libraries such as Quick and Nimble into test target, you can specify them like this:
 
 ```ruby
 target :MyAppTest do
