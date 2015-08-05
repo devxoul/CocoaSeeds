@@ -10,10 +10,10 @@ Git Submodule Alternative for Cocoa. Inspired by [CocoaPods](https://cocoapods.o
 Why?
 ----
 
-- iOS 7 projects are not available to use Swift libraries from [CocoaPods](https://cocoapods.org) or [Carthage](https://github.com/Carthage/Carthage).
+- iOS 7 projects do not support the use of Swift libraries from [CocoaPods](https://cocoapods.org) or [Carthage](https://github.com/Carthage/Carthage).
     > ld: warning: embedded dylibs/frameworks only run on iOS 8 or later
 
-- CocoaSeeds just downloads the source code and add to your Xcode project. No static libraries, no dynamic frameworks at all.
+- CocoaSeeds just downloads the source code and add it to your Xcode project. No static libraries, no dynamic frameworks.
 - Git Submodule sucks.
 - It can be used with CocoaPods and Carthage.
 
@@ -28,16 +28,14 @@ $ [sudo] gem install cocoaseeds
 ```
 
 
-Using CocoaSeeds
+How to Use CocoaSeeds
 ----------------
 
-### 1. Write Seedfile
+### 1. Write a Seedfile
 
-*Seedfile* is a ruby script that demonstrates dependencies. You can specify third party libraries from GitHub repository with simple expressions. CocoaSeeds currently supports GitHub only, but supporting many other sources are in our future roadmap.
+A *Seedfile* is a ruby script that manifests the dependencies of your project. You can manage third party libraries by simply specifying them in the Seedfile. Currently, CocoaSeeds supports only GitHub repositories. However, we are planning to support other version control systems.
 
-Let's make an empty file named **Seedfile** in the same directory with your Xcode project file. Then open it with your preferred editor.
-
-Here is a sample Seedfile:
+Let's make an empty file named **Seedfile** in the directory where your Xcode project file is located. Here is a sample Seedfile:
 
 **Seedfile**
 
@@ -53,7 +51,9 @@ target :MyAppTest do
 end
 ```
 
-Can you guess what each lines do? Seedfile has only basic information about third party libraries. Let's look at the single line. Each expressions are made with sections: source, tag and files.
+Can you guess what each line does? It has basic information about the third party libraries. 
+
+Each line in a Seedfile consists of three parts: source, tag, and files. Let's look at the second line of the previous sample.
 
 ```ruby
 github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
@@ -61,18 +61,18 @@ github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
        (Source)            (Tag)              (Files)
 ```
 
-| Section | Example                           | Required | Default               |
-|---------|-----------------------------------|:--------:|:---------------------:|
-| Source  | `github "devxoul/SwipeBack"`      | Required | -                     |
-| Tag     | `1.0.4`                           | Required | -                     |
-| Files   | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
+| Parts  | Example                           | Required | Default               |
+|--------|-----------------------------------|:--------:|:---------------------:|
+| Source | `github "devxoul/SwipeBack"`      | Required | -                     |
+| Tag    | `1.0.4`                           | Required | -                     |
+| Files  | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
 
-Looking for using branches instead of tags? See the [Branch support](#branch-support) section.
+Want to use branch names instead of tags? See the [Branch support](#branch-support) section.
 
 
 #### Specifying targets
 
-Third party libraries can be added specific targets by using target block. For example, you'd like to add some testing libraries such as Quick and Nimble to your test target, you can specify it in Seedfile:
+Third party libraries can be included as a specific target by creating a target block. For example, if you want to add some testing libraries such as Quick and Nimble as a test target, you can specify them like this:
 
 ```ruby
 target :MyAppTest do
@@ -81,18 +81,15 @@ target :MyAppTest do
 end
 ```
 
-Source files in the target block will only be added to target.
-
-
 ### 2. Install dependencies
 
-After you done with Seedfile, it's time to add those third party libraries into your project. This is pretty simple. Just open the terminal, cd to your project directory and execute `seed install` command.
+After you are done with your Seedfile, it's time to load those libraries into your project. This is pretty simple. Just open the terminal, cd to your project directory and execute `seed install` command.
 
 ```bash
 $ seed install
 ```
 
-Then all the source files will be automatically downloaded and added to your Xcode project with group named 'Seeds'.
+Then, all the source files will be automatically downloaded and added to a group named 'Seeds'.
 
 ![Seeds-in-Xcode](https://cloud.githubusercontent.com/assets/931655/7502414/cbe45ecc-f476-11e4-9564-450e8887a054.png)
 
@@ -105,12 +102,12 @@ Build your project and enjoy!
 Beta Features
 -------------
 
-There are some beta features in CocoaSeeds which mean 'seemed to work but not fully tested in real world'. Please take care of using those features. (Don't be worry. I'm using these in my company project.)
+There are some beta features that seem to work but are not fully tested in the real world. Please keep that in mind if you want to use those features. (Don't worry too much. I'm using them for my company's projects.)
 
 
 #### Branch support
 
-CocoaSeeds originally supports git tags only. For some reasons, such as using experimental feature branches like `swift-2.0`, you can use branches instead of tags. What you need to do is just replacing the tag with branch name. Anything else is same.
+Previously, you could specify a library only with a tag. However, depending on your situation, such as using an experimental branch like `swift-2.0`, you can specify them with a branch name instead of the tag. What you need to do is just replacing the tag with the branch name.
 
 ```ruby
 github 'devxoul/SwiftyImage', 'swift-2.0', :files => 'SwiftyImage/SwiftyImage.swift'
@@ -119,7 +116,7 @@ github 'devxoul/SwiftyImage', 'swift-2.0', :files => 'SwiftyImage/SwiftyImage.sw
 
 #### Resolving filename conflicts
 
-Since CocoaSeeds uses including source files directly than linking dynamic frameworks, it is important to make sure that all sources have different file names. CocoaSeeds provides a way to do this:
+Since CocoaSeeds tries to include source files directly rather than linking dynamic frameworks, it is important to make sure that all sources have different names. CocoaSeeds provides a way to do this:
 
 **Seedfile**
 
@@ -142,11 +139,11 @@ Then all of source files installed via CocoasSeeds will have names with the seed
 FAQ
 ---
 
-* Are you using this in your real-world project? (Does Apple allows the apps to be submitted on AppStore using CocoaSeeds?)
-    * Of course I am. I'm developing the social media service that 1.6 million users are using. It's on AppStore without any complaints from Apple.
+* Are you using this in real-world projects? (Does Apple allow apps to use CocoaSeeds?)
+    * Of course I am. I'm developing a social media service that has about 1.6 million users. The app is on AppStore without any complaints from Apple.
 
 * Can I ignore **Seeds** folder in VCS *(version control system)*?
-    * Yes, you can make **Seeds** folder to be ignored.
+    * Yes, you can ignore the **Seeds** folder (by adding it to `.gitignore` if you use Git).
 
 
 License
