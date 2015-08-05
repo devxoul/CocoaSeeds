@@ -31,7 +31,7 @@ $ [sudo] gem install cocoaseeds
 How to Use CocoaSeeds
 ----------------
 
-### 1. Write Seedfile
+### 1. Write a Seedfile
 
 A *Seedfile* is a ruby script that manifests the dependencies of your project. You can manage third party libraries by simply specifying them in the Seedfile. Currently, CocoaSeeds supports only GitHub repositories. However, we are planning to support other version control systems.
 
@@ -51,7 +51,7 @@ target :MyAppTest do
 end
 ```
 
-Can you guess what each line does? Seedfiles have only basic information about the third party libraries. 
+Can you guess what each line does? It has basic information about the third party libraries. 
 
 Each line in a Seedfile consists of three parts: source, tag, and files. Let's look at the second line of the previous sample.
 
@@ -61,18 +61,18 @@ github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
        (Source)            (Tag)              (Files)
 ```
 
-| Section | Example                           | Required | Default               |
-|---------|-----------------------------------|:--------:|:---------------------:|
-| Source  | `github "devxoul/SwipeBack"`      | Required | -                     |
-| Tag     | `1.0.4`                           | Required | -                     |
-| Files   | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
+| Parts  | Example                           | Required | Default               |
+|--------|-----------------------------------|:--------:|:---------------------:|
+| Source | `github "devxoul/SwipeBack"`      | Required | -                     |
+| Tag    | `1.0.4`                           | Required | -                     |
+| Files  | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
 
-Want to use branches instead of tags? See the [Branch support](#branch-support) section.
+Want to use branch names instead of tags? See the [Branch support](#branch-support) section.
 
 
 #### Specifying targets
 
-Third party libraries should be specfied in the target block. For example, If you want to add some testing libraries such as Quick and Nimble to your test target, you can specify them like this:
+Third party libraries can be included as a specific target by creating a target block. For example, if you want to add some testing libraries such as Quick and Nimble as a test target, you can specify them like this:
 
 ```ruby
 target :MyAppTest do
@@ -89,7 +89,7 @@ After you are done with your Seedfile, it's time to load those libraries into yo
 $ seed install
 ```
 
-Then all the source files will be automatically downloaded and added to your Xcode project in a group named 'Seeds'.
+Then, all the source files will be automatically downloaded and added to a group named 'Seeds'.
 
 ![Seeds-in-Xcode](https://cloud.githubusercontent.com/assets/931655/7502414/cbe45ecc-f476-11e4-9564-450e8887a054.png)
 
@@ -107,7 +107,7 @@ There are some beta features that seem to work but are not fully tested in the r
 
 #### Branch support
 
-Previously, you could specify libraries only with tags. However, depending on your situation, such as using experimental branches like `swift-2.0`, you can specify them with branch names instead of tags. What you need to do is just replacing the tags with the branch names.
+Previously, you could specify a library only with a tag. However, depending on your situation, such as using an experimental branch like `swift-2.0`, you can specify them with a branch name instead of the tag. What you need to do is just replacing the tag with the branch name.
 
 ```ruby
 github 'devxoul/SwiftyImage', 'swift-2.0', :files => 'SwiftyImage/SwiftyImage.swift'
@@ -139,11 +139,11 @@ Then all of source files installed via CocoasSeeds will have names with the seed
 FAQ
 ---
 
-* Are you using this in your real-world project? (Does Apple allow apps to use CocoaSeeds?)
-    * Of course I am. I'm developing a social media service that have 1.6 million users. It's on AppStore without any complaints from Apple.
+* Are you using this in real-world projects? (Does Apple allow apps to use CocoaSeeds?)
+    * Of course I am. I'm developing a social media service that have about 1.6 million users. The app is on AppStore without any complaints from Apple.
 
 * Can I ignore **Seeds** folder in VCS *(version control system)*?
-    * Yes, you can ignore the **Seeds** folder (by adding it to `.gitignore` for Git).
+    * Yes, you can ignore the **Seeds** folder (by adding it to `.gitignore` if you use Git).
 
 
 License
