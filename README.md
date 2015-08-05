@@ -140,7 +140,7 @@ FAQ
 ---
 
 * Are you using this in real-world projects? (Does Apple allow apps to use CocoaSeeds?)
-    * Of course I am. I'm developing a social media service that have about 1.6 million users. The app is on AppStore without any complaints from Apple.
+    * Of course I am. I'm developing a social media service that has about 1.6 million users. The app is on AppStore without any complaints from Apple.
 
 * Can I ignore **Seeds** folder in VCS *(version control system)*?
     * Yes, you can ignore the **Seeds** folder (by adding it to `.gitignore` if you use Git).
