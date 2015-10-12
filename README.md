@@ -67,8 +67,13 @@ github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
 | Tag    | `1.0.4`                           | Required | -                     |
 | Files  | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
 
-Want to use branch names instead of tags? See the [Branch support](#branch-support) section.
+> **Tip:** You can pass an array to `:files` for multiple file patterns:
+>
+> ```ruby
+> :files => ["/path1/*.swift", "/path2/*.swift"]
+> ```
 
+Want to use branch names instead of tags? See the [Branch support](#branch-support) section.
 
 #### Specifying targets
 
