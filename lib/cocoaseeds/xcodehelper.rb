@@ -100,6 +100,20 @@ module Xcodeproj::Project::Object
     end
   end
 
+  class PBXLegacyTarget
+
+    # @return 'Sources Build Phase' or `nil`
+    #
+    def sources_build_phase()
+      self.build_phases.each do |phase|
+        if phase.kind_of?(Xcodeproj::Project::Object::PBXSourcesBuildPhase)
+          return phase
+        end
+      end
+      nil
+    end
+  end
+
   class PBXSourcesBuildPhase
 
     # Adds the file reference with given UUID.
