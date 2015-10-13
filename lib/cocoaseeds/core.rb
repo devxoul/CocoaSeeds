@@ -235,6 +235,38 @@ module Seeds
         end
       end
 
+      # Creates a new instance of {#Seeds::Seed::BitBucket} and adds to
+      # {#seeds}.
+      #
+      # @see #Seeds::Seed::BitBucket
+      #
+      # @!scope method
+      # @!visibility private
+      #
+      def bitbucket(repo, tag, options={})
+        if not @current_target_name  # apply to all targets
+          target *self.project.targets.map(&:name) do
+            send(__callee__, repo, tag, options)
+          end
+        elsif repo.split('/').count != 2
+          raise Seeds::Exception.new\
+          "#{repo}: BitBucket should have both username and repo name.\n"\
+          "    (e.g. `devxoul/JLToast`)"
+        else
+          seed = Seeds::Seed::BitBucket.new
+          seed.url = "https://bitbucket.org/#{repo}"
+          seed.name = repo.split('/')[1]
+          seed.version = tag
+          seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+          if seed.files.kind_of?(String)
+            seed.files = [seed.files]
+          end
+          self.seeds[seed.name] = seed
+          self.targets[seed.name] ||= []
+          self.targets[seed.name] << @current_target_name.to_s
+        end
+      end
+
       eval seedfile
     end
 
