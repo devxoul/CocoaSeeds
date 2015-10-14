@@ -30,5 +30,11 @@ module Seeds
         "#{self.name} (#{self.version})"
       end
     end
+
+    class BitBucket < Seed
+      def to_s
+        "#{self.name} (#{self.version})"
+      end
+    end
   end
 end
