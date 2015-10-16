@@ -9,6 +9,10 @@ module Seeds
     #
     attr_accessor :version
 
+    # @return [String] the commit hash of the seed
+    #
+    attr_accessor :commit
+
     # @return [String] the url of the seed
     #
     attr_accessor :url
