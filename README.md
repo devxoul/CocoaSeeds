@@ -33,7 +33,7 @@ How to Use CocoaSeeds
 
 ### 1. Write a Seedfile
 
-A *Seedfile* is a ruby script that manifests the dependencies of your project. You can manage third party libraries by simply specifying them in the Seedfile. Currently, CocoaSeeds supports only GitHub repositories. However, we are planning to support other version control systems.
+A *Seedfile* is a ruby script that manifests the dependencies of your project. You can manage third party libraries by simply specifying them in the Seedfile. Currently, CocoaSeeds supports only GitHub and BitBucket repositories. However, we are planning to support other version control systems.
 
 Let's make an empty file named **Seedfile** in the directory where your Xcode project file is located. Here is a sample Seedfile:
 
