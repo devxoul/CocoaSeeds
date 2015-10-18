@@ -345,16 +345,18 @@ module Seeds
 
         not_found = output.include?("not found")
         if not_found and output.include?("repository")
-          say "[!] #{seed.name}: Couldn't find the repository.".red
+          raise Seeds::Exception.new\
+            "#{seed.name}: Couldn't find the repository."
         elsif not_found and output.include?("upstream")
-          say "[!] #{seed.name}: Couldn't find the tag `#{seed.version}`.".red
+          raise Seeds::Exception.new\
+            "#{seed.name}: Couldn't find the tag `#{seed.version}`."
         end
 
         if seed.commit and not seed.version # checkout to commit
           output = `cd #{dirname} 2>&1 && git checkout #{seed.commit} 2>&1`
           if output.include?("did not match any")
-            say "[!] #{seed.name}: Couldn't find the commit "\
-                "`#{seed.commit}`.".red
+            raise Seeds::Exception.new\
+              "#{seed.name}: Couldn't find the commit `#{seed.commit}`."
           end
         end
 
@@ -383,10 +385,9 @@ module Seeds
         output = `cd #{dirname} 2>&1 &&\
                  git fetch origin #{seed.version} --tags 2>&1 &&\
                  git checkout #{seed.version} 2>&1`
-        puts output
         if output.include?("Couldn't find")
-          say "[!] #{seed.name}: Couldn't find the tag or branch named "\
-              "`#{seed.commit}`.".red
+          raise Seeds::Exception.new\
+            "#{seed.name}: Couldn't find the tag or branch `#{seed.version}`."
         end
 
       elsif seed.commit
@@ -397,8 +398,8 @@ module Seeds
                   git pull 2>&1 &&
                   git checkout #{seed.commit} 2>&1`
         if output.include?("did not match any")
-          say "[!] #{seed.name}: Couldn't find the commit "\
-              "`#{seed.commit}`.".red
+          raise Seeds::Exception.new\
+            "#{seed.name}: Couldn't find the commit `#{seed.commit}`.".red
         end
       end
 

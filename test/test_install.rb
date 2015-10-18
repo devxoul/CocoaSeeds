@@ -91,6 +91,22 @@ class InstallTest < Test
     assert_raises Seeds::Exception do @seed.install end
   end
 
+
+  def test_raise_invalid_tag
+    seedfile %{
+      github "JLToast", "Hello, World!"
+    }
+    assert_raises Seeds::Exception do @seed.install end
+  end
+
+
+  def test_raise_invalid_commit
+    seedfile %{
+      github "JLToast", :commit => "Hello, World!"
+    }
+    assert_raises Seeds::Exception do @seed.install end
+  end
+
 end
 
 
