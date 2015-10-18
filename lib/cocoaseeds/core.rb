@@ -334,6 +334,15 @@ module Seeds
     # @!visibility private
     #
     def install_seed(seed, dirname)
+      # if remote url has changed, remove directory and clone again
+      remote_url = `
+        cd #{dirname} 2>&1 &&
+        git remote show origin -n | grep Fetch | awk '{ print $3 }' 2>&1
+      `.strip
+      if remote_url != seed.url
+        FileUtils.rm_rf(dirname)
+      end
+
       # clone and return if not exists
       if not File.exist?(dirname)
         say "Installing #{seed.name} (#{seed.version or seed.commit})".green
