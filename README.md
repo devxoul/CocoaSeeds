@@ -43,7 +43,7 @@ Let's make an empty file named **Seedfile** in the directory where your Xcode pr
 github "Alamofire/Alamofire", "1.2.1", :files => "Source/*.{swift,h}"
 github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
 github "devxoul/SwipeBack", "1.0.4"
-github "Masonry/SnapKit", "0.10.0", :files => "Source/*.{swift,h}"
+github "SnapKit/SnapKit", :commit => "62e7645", :files => "Source/*.{swift,h}"
 
 target :MyAppTest do
   github "Quick/Quick", "v0.3.1", :files => "Quick/**.{swift,h}"
@@ -58,14 +58,14 @@ Each line in a Seedfile consists of three parts: source, tag, and files. Let's l
 ```ruby
 github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
 ~~~~~~~~~~~~~~~~~~~~~~~~  ~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-       (Source)            (Tag)              (Files)
+       (Source)          (Version)             (Files)
 ```
 
-| Parts  | Example                           | Required | Default               |
-|--------|-----------------------------------|:--------:|:---------------------:|
-| Source | `github "devxoul/SwipeBack"`      | Required | -                     |
-| Tag    | `1.0.4`                           | Required | -                     |
-| Files  | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
+| Parts   | Example                           | Required | Default               |
+|---------|-----------------------------------|:--------:|:---------------------:|
+| Source  | `github "devxoul/SwipeBack"`      | Required | -                     |
+| Version | Tag: `"1.0.4"`<br>Branch: `"swift-2.0"`<br>Commit: `:commit => "SHA1"` | Required | -                     |
+| Files   | `:files => "JLToast/*.{swift,h}"` | Optional | `*/**.{h,m,mm,swift}` |
 
 > **Tip:** You can pass an array to `:files` for multiple file patterns:
 >

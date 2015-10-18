@@ -161,6 +161,10 @@ module Seeds
           seed = Seeds::Seed.new
           seed.name = lock.split(' (')[0]
           seed.version = lock.split('(')[1].split(')')[0]
+          if seed.version.start_with? '$'
+            seed.commit = seed.version[1..-1]
+            seed.version = nil
+          end
           self.locks[seed.name] = seed
         end
       end
@@ -224,8 +228,17 @@ module Seeds
           seed = Seeds::Seed::GitHub.new
           seed.url = "https://github.com/#{repo}"
           seed.name = repo.split('/')[1]
-          seed.version = tag
-          seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+          if tag.is_a?(String)
+            if options[:commit]
+              raise Seeds::Exception.new\
+                "#{repo}: Version and commit are both specified."
+            end
+            seed.version = tag
+            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+          elsif tag.is_a?(Hash)
+            seed.commit = tag[:commit][0..6]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+          end
           if seed.files.kind_of?(String)
             seed.files = [seed.files]
           end
@@ -256,8 +269,17 @@ module Seeds
           seed = Seeds::Seed::BitBucket.new
           seed.url = "https://bitbucket.org/#{repo}"
           seed.name = repo.split('/')[1]
-          seed.version = tag
-          seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+          if tag.is_a?(String)
+            if options[:commit]
+              raise Seeds::Exception.new\
+                "#{repo}: Version and commit are both specified."
+            end
+            seed.version = tag
+            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+          elsif tag.is_a?(Hash)
+            seed.commit = tag[:commit][0..6]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+          end
           if seed.files.kind_of?(String)
             seed.files = [seed.files]
           end
@@ -289,53 +311,97 @@ module Seeds
     #
     def install_seeds
       self.seeds.sort.each do |name, seed|
-        dirname = File.join(self.root_path, "Seeds", name)
+        dirname = File.join(self.root_path, "Seeds", seed.name)
+        self.install_seed(seed, dirname)
 
-        if lock = self.locks[name]
-          old_version = lock.version
-        end
+        next if not seed.files
 
-        if File.exist?(dirname)
-          tag = `cd #{dirname} && git describe --tags --abbrev=0 2>&1`
-          tag.strip!
-          if tag == seed.version and (not old_version or tag == old_version)
-            say "Using #{name} (#{seed.version})"
-            `cd #{dirname} 2>&1 &&\
-             git reset HEAD --hard 2>&1 &&\
-             git checkout . 2>&1 &&\
-             git clean -fd 2>&1`
-          else
-            say "Installing #{name} #{seed.version} (was #{old_version})".green
-            `cd #{dirname} 2>&1 &&\
-             git reset HEAD --hard 2>&1 &&\
-             git checkout . 2>&1 &&\
-             git clean -fd 2>&1 &&\
-             git fetch origin #{seed.version} --tags 2>&1 &&\
-             git checkout #{seed.version} 2>&1`
-          end
-        else
-          say "Installing #{name} (#{seed.version})".green
-          output = `git clone #{seed.url} -b #{seed.version} #{dirname} 2>&1`
-          if output.include?("not found")
-            if output.include?("repository")
-              say "[!] #{name}: Couldn't find the repository.".red
-            elsif output.include?("upstream")
-              say "[!] #{name}: Couldn't find the tag `#{seed.version}`.".red
-            end
-          end
-        end
-
-        if seed.files
-          self.source_files[name] = []
-          seed.files.each do |file|
-            paths = Dir.glob(File.join(dirname, file))
-            paths.each do |path|
-              path = self.path_with_prefix(seed.name, path)
-              self.source_files[name].push(path)
-            end
+        # add seed files to `source_files`
+        self.source_files[name] = []
+        seed.files.each do |file|
+          paths = Dir.glob(File.join(dirname, file))
+          paths.each do |path|
+            path = self.path_with_prefix(seed.name, path)
+            self.source_files[name].push(path)
           end
         end
       end
+    end
+
+
+    # Installs new seed or updates existing seed in {#dirname}.
+    #
+    # @!visibility private
+    #
+    def install_seed(seed, dirname)
+      # clone and return if not exists
+      if not File.exist?(dirname)
+        say "Installing #{seed.name} (#{seed.version or seed.commit})".green
+
+        command = "git clone #{seed.url}"
+        command += " -b #{seed.version}" if seed.version
+        command += " #{dirname} 2>&1"
+        output = `#{command}`
+
+        not_found = output.include?("not found")
+        if not_found and output.include?("repository")
+          say "[!] #{seed.name}: Couldn't find the repository.".red
+        elsif not_found and output.include?("upstream")
+          say "[!] #{seed.name}: Couldn't find the tag `#{seed.version}`.".red
+        end
+
+        if seed.commit and not seed.version # checkout to commit
+          output = `cd #{dirname} 2>&1 && git checkout #{seed.commit} 2>&1`
+          if output.include?("did not match any")
+            say "[!] #{seed.name}: Couldn't find the commit "\
+                "`#{seed.commit}`.".red
+          end
+        end
+
+        return
+      end
+
+      # discard local changes
+      `cd #{dirname} 2>&1 &&\
+       git reset HEAD --hard 2>&1 &&\
+       git checkout . 2>&1 &&\
+       git clean -fd 2>&1`
+
+      if lock = self.locks[seed.name]
+        lock_version = lock.version
+        lock_commit = lock.commit
+      end
+
+      if seed.version == lock_version and seed.commit == lock_commit
+        say "Using #{seed.name} (#{lock_version or lock_commit})"
+        return
+      end
+
+      if seed.version
+        say "Installing #{seed.name} #{seed.version}"\
+            " (was #{lock_version or lock_commit})".green
+        output = `cd #{dirname} 2>&1 &&\
+                 git fetch origin #{seed.version} --tags 2>&1 &&\
+                 git checkout #{seed.version} 2>&1`
+        puts output
+        if output.include?("Couldn't find")
+          say "[!] #{seed.name}: Couldn't find the tag or branch named "\
+              "`#{seed.commit}`.".red
+        end
+
+      elsif seed.commit
+        say "Installing #{seed.name} #{seed.commit}"\
+            " (was #{lock_version or lock_commit})".green
+        output = `cd #{dirname} 2>&1 &&
+                  git checkout master 2>&1 &&
+                  git pull 2>&1 &&
+                  git checkout #{seed.commit} 2>&1`
+        if output.include?("did not match any")
+          say "[!] #{seed.name}: Couldn't find the commit "\
+              "`#{seed.commit}`.".red
+        end
+      end
+
     end
 
     # Append seed name as a prefix to file name and returns the path.
@@ -463,7 +529,7 @@ module Seeds
     def build_lockfile
       tree = { "SEEDS" => [] }
       self.seeds.each do |name, seed|
-        tree["SEEDS"] << "#{name} (#{seed.version})"
+        tree["SEEDS"] << "#{name} (#{seed.version or '$' + seed.commit})"
       end
       File.write(self.lockfile_path, YAML.dump(tree))
     end
