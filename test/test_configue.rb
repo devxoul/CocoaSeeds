@@ -149,6 +149,30 @@ class CoreTest < Test
   end
 
 
+  def test_exclude_files
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2",
+        :files => "JLToast/*.{h,swift}",
+        :exclude_files => "JLToast/JLToast.h"
+    }
+    @seed.install
+
+    assert\
+      !self.phase(:TestProj).include_filename?('JLToast.h'),
+      "TestProj should not have JLToast.h"
+    assert\
+      !self.phase(:TestProjTests).include_filename?('JLToast.h'),
+      "TestProjTests should not have JLToast.h"
+
+    assert\
+      self.phase(:TestProj).include_filename?('JLToast.swift'),
+      "TestProj should have JLToast.swift"
+    assert\
+      self.phase(:TestProjTests).include_filename?('JLToast.swift'),
+      "TestProjTests should have JLToast.swift"
+  end
+
+
   def test_remove
     seedfile %{
       github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"

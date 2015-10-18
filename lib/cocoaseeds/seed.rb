@@ -21,6 +21,10 @@ module Seeds
     #
     attr_accessor :files
 
+    # @return [Array<String>] the source file patterns which will be excluded
+    #
+    attr_accessor :exclude_files
+
     # @return [String] lockfile-formatted string
     #
     # @example JLToast (1.2.2)

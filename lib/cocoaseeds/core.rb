@@ -235,12 +235,17 @@ module Seeds
             end
             seed.version = tag
             seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
             seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
             seed.files = [seed.files]
+          end
+          if seed.exclude_files.kind_of?(String)
+            seed.exclude_files = [seed.exclude_files]
           end
           self.seeds[seed.name] = seed
           self.targets[seed.name] ||= []
@@ -279,9 +284,14 @@ module Seeds
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
             seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
             seed.files = [seed.files]
+            seed.exclude_files = options[:exclude_files] || []
+          end
+          if seed.exclude_files.kind_of?(String)
+            seed.exclude_files = [seed.exclude_files]
           end
           self.seeds[seed.name] = seed
           self.targets[seed.name] ||= []
@@ -320,6 +330,15 @@ module Seeds
         self.source_files[name] = []
         seed.files.each do |file|
           paths = Dir.glob(File.join(dirname, file))
+
+          # exclude files
+          seed.exclude_files.each do |exclude_file|
+            exclude_paths = Dir.glob(File.join(dirname, exclude_file))
+            exclude_paths.each do |exclude_path|
+              paths.delete(exclude_path)
+            end
+          end
+
           paths.each do |path|
             path = self.path_with_prefix(seed.name, path)
             self.source_files[name].push(path)
