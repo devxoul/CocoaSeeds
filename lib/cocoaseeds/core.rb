@@ -507,8 +507,12 @@ module Seeds
     #
     def configure_phase
       self.project.targets.each do |target|
-        phase = target.sources_build_phase
-        next if not phase
+        begin
+          phase = target.sources_build_phase
+          next unless phase
+        rescue NoMethodError
+          next
+        end
 
         # remove zombie build files
         phase.files_references.each do |file|
