@@ -322,7 +322,7 @@ module Seeds
     def install_seeds
       self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", seed.name)
-        self.install_seed(seed, dirname)
+        self.install_seed(seed, Shellwords.escape(dirname))
 
         next if not seed.files
 
