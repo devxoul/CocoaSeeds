@@ -3,6 +3,7 @@ require 'digest'
 require 'fileutils'
 require 'xcodeproj'
 require 'yaml'
+require 'shellwords'
 
 module Seeds
   require 'cocoaseeds/version'
