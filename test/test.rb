@@ -26,6 +26,19 @@ class Test < Minitest::Test
   end
 
 
+  # Deletes existing project and creates new one in a subdirectory "MyApp".
+  def subdirectory_project
+    FileUtils.rm_rf(@project_filename)
+    new_dir = File.join(@project_dirname, "MyApp")
+    FileUtils.mkdir(new_dir)
+    @project_filename = File.join(new_dir, "TestProj.xcodeproj")
+    project = Xcodeproj::Project.new(@project_filename)
+    project.new_target(:application, "TestProj", :ios)
+    project.new_target(:test, "TestProjTests", :ios)
+    project.save
+  end
+
+
   def teardown
     FileUtils.rm_rf(@project_dirname)
   end
