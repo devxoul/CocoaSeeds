@@ -140,3 +140,29 @@ class InstallTest
   end
 
 end
+
+
+class InstallTest
+
+  def test_install_xcodeproj
+    self.subdirectory_project
+    seedfile %{
+      xcodeproj "MyApp/TestProj.xcodeproj"
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+    }
+    @seed.install
+
+    assert\
+      File.exists?(File.join(@seeds_dirname, "JLToast")),
+      "Directory Seeds/JLToast not exists."
+  end
+
+  def test_install_without_xcodeproj
+    self.subdirectory_project
+    seedfile %{
+      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+    }
+    assert_raises Seeds::Exception do @seed.install end
+  end
+
+end

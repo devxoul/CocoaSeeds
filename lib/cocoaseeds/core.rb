@@ -126,10 +126,9 @@ module Seeds
     def prepare_requirements
       # .xcodeproj
       project_filename = Dir.glob("#{root_path}/*.xcodeproj")[0]
-      if not project_filename
-        raise Seeds::Exception.new "Couldn't find .xcodeproj file."
+      if project_filename
+        self.project = Xcodeproj::Project.open(project_filename)
       end
-      self.project = Xcodeproj::Project.open(project_filename)
 
       # Seedfile
       begin
@@ -186,6 +185,17 @@ module Seeds
         @swift_seedname_prefix = true
       end
 
+      # Set current Xcode project with given path.
+      #
+      # @!scope method
+      # @!visibility private
+      #
+      def xcodeproj(path)
+        proejct_filename = File.join(self.root_path, path)
+        self.project = Xcodeproj::Project.open(proejct_filename)
+        self.validate_project
+      end
+
       # Sets `@current_target_name` and executes code block.
       #
       # @param [String] names The name of target.
@@ -194,6 +204,7 @@ module Seeds
       # @!visibility private
       #
       def target(*names, &code)
+        self.validate_project
         names.each do |name|
           name = name.to_s  # use string instead of symbol
           target = self.project.target_named(name)
@@ -216,6 +227,7 @@ module Seeds
       # @!visibility private
       #
       def github(repo, tag, options={})
+        self.validate_project
         if not @current_target_name  # apply to all targets
           target *self.project.targets.map(&:name) do
             send(__callee__, repo, tag, options)
@@ -262,6 +274,7 @@ module Seeds
       # @!visibility private
       #
       def bitbucket(repo, tag, options={})
+        self.validate_project
         if not @current_target_name  # apply to all targets
           target *self.project.targets.map(&:name) do
             send(__callee__, repo, tag, options)
@@ -565,6 +578,12 @@ module Seeds
         tree["SEEDS"] << "#{name} (#{seed.version or '$' + seed.commit})"
       end
       File.write(self.lockfile_path, YAML.dump(tree))
+    end
+
+    def validate_project
+      if self.project.nil?
+        raise Seeds::Exception.new "Couldn't find .xcodeproj file."
+      end
     end
 
     # Prints a message if {#mute} is `false`.
