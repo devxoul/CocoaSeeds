@@ -86,6 +86,18 @@ target :MyAppTest do
 end
 ```
 
+#### Specifying Xcode project file path
+
+If the .xcodeproj file is located in other location, you can specify the path in Seedfile.
+
+```ruby
+xcodeproj "path/to/Project.xcodeproj"
+
+target :MyApp do
+    github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
+end
+```
+
 ### 2. Install dependencies
 
 After you are done with your Seedfile, it's time to load those libraries into your project. This is pretty simple. Just open the terminal, cd to your project directory and execute `seed install` command.
