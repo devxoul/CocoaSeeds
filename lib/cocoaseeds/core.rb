@@ -384,6 +384,12 @@ module Seeds
         command += " #{dirname} 2>&1"
         output = `#{command}`
 
+        unable_to_access = output.include?("unable to access")
+        if unable_to_access and output.include?("Failed to connect to")
+          raise Seeds::Exception.new\
+            "#{seed.name}: Failed to connect to #{seed.url}. \n#{output}"
+        end
+
         not_found = output.include?("not found")
         if not_found and output.include?("repository")
           raise Seeds::Exception.new\
