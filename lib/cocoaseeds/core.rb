@@ -315,50 +315,50 @@ module Seeds
       eval seedfile
     end
 
-    # Creates a new instance of {#Seeds::Seed::BitBucket} and adds to
+    # Creates a new instance of {#Seeds::Seed::Git} and adds to
     # {#seeds}.
     #
-    # @see #Seeds::Seed::CustomGit
+    # @see #Seeds::Seed::Git
     #
     # @!scope method
     # @!visibility private
     #
-    def customgit( repo, tag, options={})
-        self.validate_project
+    def git(repo, tag, options={})
+		self.validate_project
         if not @current_target_name  # apply to all targets
-            target *self.project.targets.map(&:name) do
-                send(__callee__, repo, tag, options)
+          target *self.project.targets.map(&:name) do
+            send(__callee__, repo, tag, options)
+          end
+        elsif repo.split('/').count != 2
+          raise Seeds::Exception.new\
+          "#{repo}: Git should have both username and repo name.\n"\
+          "    (e.g. `devxoul/JLToast`)"
+        else
+          seed = Seeds::Seed::Git.new
+          seed.url = "#{repo}"
+          seed.name = repo.split('/')[1]
+          if tag.is_a?(String)
+            if options[:commit]
+              raise Seeds::Exception.new\
+                "#{repo}: Version and commit are both specified."
             end
-            elsif repo.split('/').count != 2
-            raise Seeds::Exception.new\
-            "#{repo}: GitHub should have both username and repo name.\n"\
-            "    (e.g. `devxoul/JLToast`)"
-            else
-                seed = Seeds::Seed::GitHub.new
-                seed.url = "#{repo}"
-                seed.name = repo.split('/')[1]
-                if tag.is_a?(String)
-                if options[:commit]
-                    raise Seeds::Exception.new\
-                    "#{repo}: Version and commit are both specified."
-                end
-                seed.version = tag
-                seed.files = options[:files] || '**/*.{h,m,mm,swift}'
-                seed.exclude_files = options[:exclude_files] || []
-                elsif tag.is_a?(Hash)
-                seed.commit = tag[:commit][0..6]
-                seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
-                seed.exclude_files = options[:exclude_files] || []
-            end
-            if seed.files.kind_of?(String)
-                seed.files = [seed.files]
-            end
-            if seed.exclude_files.kind_of?(String)
-                seed.exclude_files = [seed.exclude_files]
-            end
-            self.seeds[seed.name] = seed
-            self.targets[seed.name] ||= []
-            self.targets[seed.name] << @current_target_name.to_s
+            seed.version = tag
+            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
+          elsif tag.is_a?(Hash)
+            seed.commit = tag[:commit][0..6]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
+          end
+          if seed.files.kind_of?(String)
+            seed.files = [seed.files]
+          end
+          if seed.exclude_files.kind_of?(String)
+            seed.exclude_files = [seed.exclude_files]
+          end
+          self.seeds[seed.name] = seed
+          self.targets[seed.name] ||= []
+          self.targets[seed.name] << @current_target_name.to_s
         end
     end
 

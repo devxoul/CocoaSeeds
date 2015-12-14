@@ -45,7 +45,7 @@ module Seeds
       end
     end
     
-    class CustomGit < Seed
+    class Git < Seed
         def to_s
             "#{self.name} (#{self.version})"
         end
