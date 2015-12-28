@@ -126,7 +126,7 @@ module Xcodeproj::Project::Object
       else
         build_file = project.new_with_uuid(PBXBuildFile, uuid)
         build_file.file_ref = file_ref
-        files << build_file
+        files.insert(0, build_file)
         build_file
       end
     end
