@@ -170,6 +170,30 @@ class CoreTest < Test
     assert\
       self.phase(:TestProjTests).include_filename?('JLToast.swift'),
       "TestProjTests should have JLToast.swift"
+
+
+  def test_commit_exclude_files
+    seedfile %{
+      github "devxoul/JLToast",
+        :commit => "908bca5",
+        :files => "JLToast/*.{h,swift}",
+        :exclude_files => "JLToast/JLToast.swift"
+    }
+    @seed.install
+
+    assert\
+      !self.phase(:TestProj).include_filename?('JLToast.swift'),
+      "TestProj should not have JLToast.swift"
+    assert\
+      !self.phase(:TestProjTests).include_filename?('JLToast.swift'),
+      "TestProjTests should not have JLToast.swift"
+
+    assert\
+      self.phase(:TestProj).include_filename?('JLToastCenter.swift'),
+      "TestProj should have JLToastCenter.swift"
+    assert\
+      self.phase(:TestProjTests).include_filename?('JLToastCenter.swift'),
+      "TestProjTests should have JLToastCenter.swift"
   end
 
 
