@@ -249,8 +249,9 @@ module Seeds
             seed.files = options[:files] || '**/*.{h,m,mm,swift}'
             seed.exclude_files = options[:exclude_files] || []
           elsif tag.is_a?(Hash)
-            seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            options.merge!(tag)
+            seed.commit = options[:commit][0..6]
+            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
@@ -295,8 +296,9 @@ module Seeds
             seed.version = tag
             seed.files = options[:files] || '**/*.{h,m,mm,swift}'
           elsif tag.is_a?(Hash)
-            seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            options.merge!(tag)
+            seed.commit = options[:commit][0..6]
+            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
