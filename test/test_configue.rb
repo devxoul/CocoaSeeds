@@ -153,23 +153,48 @@ class CoreTest < Test
     seedfile %{
       github "devxoul/JLToast", "1.2.2",
         :files => "JLToast/*.{h,swift}",
-        :exclude_files => "JLToast/JLToast.h"
+        :exclude_files => "JLToast/JLToast.swift"
     }
     @seed.install
 
     assert\
-      !self.phase(:TestProj).include_filename?('JLToast.h'),
-      "TestProj should not have JLToast.h"
+      !self.phase(:TestProj).include_filename?('JLToast.swift'),
+      "TestProj should not have JLToast.swift"
     assert\
-      !self.phase(:TestProjTests).include_filename?('JLToast.h'),
-      "TestProjTests should not have JLToast.h"
+      !self.phase(:TestProjTests).include_filename?('JLToast.swift'),
+      "TestProjTests should not have JLToast.swift"
 
     assert\
-      self.phase(:TestProj).include_filename?('JLToast.swift'),
-      "TestProj should have JLToast.swift"
+      self.phase(:TestProj).include_filename?('JLToastCenter.swift'),
+      "TestProj should have JLToastCenter.swift"
     assert\
-      self.phase(:TestProjTests).include_filename?('JLToast.swift'),
-      "TestProjTests should have JLToast.swift"
+      self.phase(:TestProjTests).include_filename?('JLToastCenter.swift'),
+      "TestProjTests should have JLToastCenter.swift"
+  end
+
+
+  def test_commit_exclude_files
+    seedfile %{
+      github "devxoul/JLToast",
+        :commit => "908bca5",
+        :files => "JLToast/*.{h,swift}",
+        :exclude_files => "JLToast/JLToast.swift"
+    }
+    @seed.install
+
+    assert\
+      !self.phase(:TestProj).include_filename?('JLToast.swift'),
+      "TestProj should not have JLToast.swift"
+    assert\
+      !self.phase(:TestProjTests).include_filename?('JLToast.swift'),
+      "TestProjTests should not have JLToast.swift"
+
+    assert\
+      self.phase(:TestProj).include_filename?('JLToastCenter.swift'),
+      "TestProj should have JLToastCenter.swift"
+    assert\
+      self.phase(:TestProjTests).include_filename?('JLToastCenter.swift'),
+      "TestProjTests should have JLToastCenter.swift"
   end
 
 
