@@ -530,6 +530,8 @@ module Seeds
       self.project.targets.each do |target|
         begin
           phase = target.sources_build_phase
+          # support resources phase
+          resource_phase = target.resources_build_phase
           next unless phase
         rescue NoMethodError
           next
@@ -545,6 +547,17 @@ module Seeds
             end
           end
         end
+
+        resource_phase.files_references.each do |file|
+          begin
+            file.real_path
+          rescue 
+            resource_phase.files.each do |build_file|
+              resource_phase.files.delete(build_file) if build_file.file_ref == file
+            end
+          end
+        end
+
 
         removings = [] # name of seeds going to be removed from the target
         addings = [] # name of seeds going to be added to the target
@@ -564,16 +577,37 @@ module Seeds
             phase.files.each do |build_file|
               phase.files.delete(build_file) if build_file.file_ref == file
             end
+            resource_phase.files.each do |build_file|
+              resource_phase.files.delete(build_file) if build_file.file_ref == file
+            end
           end
 
           addings.each do |seed_names|
             next if file.name.end_with? ".h"
             next if not seed_names.include?(file.parent.name)
             uuid = Xcodeproj::uuid_with_name "#{target.name}:#{file.name}"
-            phase.add_file_reference_with_uuid(file, uuid, true)
+            # Treat a file as resource file unless confirm it can be compiled.
+            if self.valid_source_file?(file)
+              phase.add_file_reference_with_uuid(file, uuid, true)
+            else
+              resource_phase.add_file_reference(file)
+            end
+
           end
         end
       end
+    end
+
+    # Determines whether there's a source file.
+    #
+    # @!visibility private
+    #
+    def valid_source_file? filename
+      suffixs = [".h", ".c", ".m", ".mm", ".swift"]
+      suffixs.each do |suffix|
+        return true if filename.name.end_with? suffix
+      end
+      return false
     end
 
     # Writes Seedfile.lock file.
