@@ -590,7 +590,7 @@ module Seeds
             if self.valid_source_file?(file)
               phase.add_file_reference_with_uuid(file, uuid, true)
             else
-              resource_phase.add_file_reference(file)
+              resource_phase.add_file_reference_with_uuid(file, uuid, true)
             end
 
           end

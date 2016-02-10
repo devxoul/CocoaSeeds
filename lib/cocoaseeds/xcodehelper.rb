@@ -114,7 +114,7 @@ module Xcodeproj::Project::Object
     end
   end
 
-  class PBXSourcesBuildPhase
+  class AbstractBuildPhase
 
     # Adds the file reference with given UUID.
     #
