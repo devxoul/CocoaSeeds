@@ -198,6 +198,29 @@ class CoreTest < Test
   end
 
 
+  def test_resources
+    seedfile %{
+      github "SwiftyJSON/SwiftyJSON", "2.3.2",
+        :files => "Source/*.{swift,h,plist}"
+    }
+    @seed.install
+
+    assert\
+      self.phase(:TestProj).include_filename?('SwiftyJSON.swift'),
+      "TestProj build phase should have SwiftyJSON.swift"
+    assert\
+      !self.resource_phase(:TestProj).include_filename?('SwiftyJSON.swift')
+      "TestProj resource phase should have SwiftyJSON.swift"
+
+    assert\
+      !self.phase(:TestProj).include_filename?('Info-iOS.plist'),
+      "TestProj build phase should not have Info-iOS.plist"
+    assert\
+      self.resource_phase(:TestProj).include_filename?('Info-iOS.plist')
+      "TestProj resource phase should have Info-iOS.plist"
+  end
+
+
   def test_remove
     seedfile %{
       github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
