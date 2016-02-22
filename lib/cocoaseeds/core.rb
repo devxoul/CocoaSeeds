@@ -219,6 +219,38 @@ module Seeds
         @current_target_name = nil
       end
 
+      def local(name, source_dir, options={})
+        self.validate_project
+        if not @current_target_name
+          target *self.project.targets.map(&:name) do
+            send(__callee__, "", "", options)
+          end
+        else
+          seed = Seeds::Seed::LocalSeed.new
+          if not name
+            raise Seeds::Exception.new\
+            "Need a name to identifier."
+          else
+            seed.name = name
+          end
+
+          if not source_dir
+            raise Seeds::Exception.new\
+            "Need a source dir."
+          else
+            seed.source_dir = source_dir
+          end
+
+          seed.files = options[:files] ||  '**/*.{h,m,mm,swift}'
+          if seed.files.kind_of? String
+            seed.files = [seed.files]
+          end
+          seed.exclude_files = options[:exclude_files] || []
+          self.seeds[seed.name] = seed
+          self.targets[seed.name] ||= []
+          self.targets[seed.name] << @current_target_name.to_s
+        end
+      end
       # Creates a new instance of {#Seeds::Seed::GitHub} and adds to {#seeds}.
       #
       # @see #Seeds::Seed::GitHub
@@ -314,6 +346,44 @@ module Seeds
         end
       end
 
+      def git(repo, tag, options={})
+        self.validate_project
+        if not @current_target_name
+          target *self.project.targets.map(&:name) do
+            send(__callee__, repo, tag, options)
+          end
+        elsif not repo.end_with? ".git"
+          raise Seeds::Exception.new\
+          "#{repo}: is not a valid git repo.\n"
+        else
+          seed = Seeds::Seed::CustomSeed.new
+          seed.url = repo
+          seed.name = repo.split('/').last.sub /.git$/, ''
+          if tag.is_a? String
+            if options[:commit]
+              raise Seeds::Exception.new\
+              "#{repo}: Version and commit are both specified."
+            end
+            seed.version = tag
+            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
+          elsif tag.is_a? Hash
+            seed.commit = tag[:commit][0..6]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.exclude_files = options[:exclude_files] || []
+          end
+          if seed.files.kind_of? String
+            seed.files = [seed.files]
+          end
+          if seed.exclude_files.kind_of? String
+            seed.exclude_files = [seed.exclude_files]
+          end
+          self.seeds[seed.name] = seed
+          self.targets[seed.name] ||= []
+          self.targets[seed.name] << @current_target_name.to_s
+        end
+      end
+
       eval seedfile
     end
 
@@ -335,9 +405,18 @@ module Seeds
     # @!visibility private
     #
     def install_seeds
+      seed_dir = File.join self.root_path, "Seeds"
+      if not Dir.exist? seed_dir
+        Dir.mkdir seed_dir
+      end
+
       self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", seed.name)
-        self.install_seed(seed, Shellwords.escape(dirname))
+        if seed.instance_of? Seeds::Seed::LocalSeed
+          self.install_local_seed(seed, Shellwords.escape(dirname))
+        else
+          self.install_seed(seed, Shellwords.escape(dirname))
+        end
 
         next if not seed.files
 
@@ -361,7 +440,6 @@ module Seeds
         end
       end
     end
-
 
     # Installs new seed or updates existing seed in {#dirname}.
     #
@@ -452,6 +530,23 @@ module Seeds
         end
       end
 
+    end
+
+    def install_local_seed(seed, dirname)
+      FileUtils.rm_rf dirname
+      if not File.exist? dirname
+        say "Installing local seed: #{seed.name}"
+        Dir.mkdir dirname
+      end
+
+      if seed.source_dir
+        full_source_path = File.join self.root_path, seed.source_dir
+        command = "cp -R #{full_source_path} #{self.root_path}/Seeds"
+        output = `#{command}`
+      else
+        raise Seeds::Exception.new\
+        "Not found source dir."
+      end
     end
 
     # Append seed name as a prefix to file name and returns the path.
@@ -617,7 +712,9 @@ module Seeds
     def build_lockfile
       tree = { "SEEDS" => [] }
       self.seeds.each do |name, seed|
-        tree["SEEDS"] << "#{name} (#{seed.version or '$' + seed.commit})"
+        if not seed.instance_of? Seeds::Seed::LocalSeed
+          tree["SEEDS"] << "#{name} (#{seed.version or '$' + seed.commit})"
+        end
       end
       File.write(self.lockfile_path, YAML.dump(tree))
     end
