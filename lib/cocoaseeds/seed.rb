@@ -44,5 +44,22 @@ module Seeds
         "#{self.name} (#{self.version})"
       end
     end
+
+    class LocalSeed < Seed
+      # @return [String] the source directory of the seed
+      #
+      attr_accessor :source_dir
+
+      def to_s
+        "#{self.name} (#{self.source_dir})"
+      end
+    end
+
+    class CustomSeed < Seed
+      def to_s
+        "#{self.name} (#{self.version})"
+      end
+    end
+
   end
 end
