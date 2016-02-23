@@ -220,6 +220,28 @@ class CoreTest < Test
       "TestProj resource phase should have Info-iOS.plist"
   end
 
+  def test_custom_git_source
+    seedfile %{
+      git "git@github.com:SwiftyJSON/SwiftyJSON.git", "2.3.2", :files => "Source/*.{swift,h,plist}"
+    }
+    @seed.install
+
+    assert\
+      self.phase(:TestProj).include_filename?('SwiftyJSON.swift'),
+      "TestProj build phase should have SwiftyJSON.swift"
+    assert\
+      !self.resource_phase(:TestProj).include_filename?('SwiftyJSON.swift')
+    "TestProj resource phase should have SwiftyJSON.swift"
+
+    assert\
+      !self.phase(:TestProj).include_filename?('Info-iOS.plist'),
+      "TestProj build phase should not have Info-iOS.plist"
+    assert\
+      self.resource_phase(:TestProj).include_filename?('Info-iOS.plist')
+    "TestProj resource phase should have Info-iOS.plist"
+
+  end
+
 
   def test_remove
     seedfile %{
