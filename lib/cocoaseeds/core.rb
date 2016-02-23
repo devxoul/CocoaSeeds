@@ -223,7 +223,7 @@ module Seeds
         self.validate_project
         if not @current_target_name
           target *self.project.targets.map(&:name) do
-            send(__callee__, "", "", options)
+            send(__callee__, name, source_dir, options)
           end
         else
           seed = Seeds::Seed::LocalSeed.new
@@ -540,8 +540,8 @@ module Seeds
       end
 
       if seed.source_dir
-        full_source_path = File.join self.root_path, seed.source_dir
-        command = "cp -R #{full_source_path} #{self.root_path}/Seeds"
+        full_source_path = File.expand_path(seed.source_dir)
+        command = "cp -R #{full_source_path}/ #{self.root_path}/Seeds/#{seed.name}"
         output = `#{command}`
       else
         raise Seeds::Exception.new\

@@ -54,6 +54,11 @@ class Test < Minitest::Test
   end
 
 
+  def resource_phase(target_name)
+    self.project.target_named(target_name).resources_build_phase
+  end
+
+
   def seedfile(content)
     path = File.join(@project_dirname, "Seedfile")
     content = content ? content.strip.sub(/^\s+/, '') : ''

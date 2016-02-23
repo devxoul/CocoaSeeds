@@ -113,23 +113,36 @@ Then, all the source files will be automatically downloaded and added to a group
 
 ### 3. Enjoy
 
-Build your project and enjoy!
+Build your project and enjoy coding!
 
 
-Beta Features
--------------
+Tips and Tricks
+---------------
 
-There are some beta features that seem to work but are not fully tested in the real world. Please keep that in mind if you want to use those features. (Don't worry too much. I'm using them for my company's projects.)
+#### Using branches
 
-
-#### Branch support
-
-Previously, you could specify a library only with a tag. However, depending on your situation, such as using an experimental branch like `swift-2.0`, you can specify them with a branch name instead of the tag. What you need to do is just replacing the tag with the branch name.
+You can specify a branch name instead of the tag. What you need to do is just replacing the tag with the branch name.
 
 ```ruby
 github 'devxoul/SwiftyImage', 'swift-2.0', :files => 'SwiftyImage/SwiftyImage.swift'
 ```
 
+
+#### Excluding files
+
+Use `exclude_files` to exclude files from `files` pattern.
+
+```ruby
+github 'devxoul/Carte', '0.2.2', :files => 'Carte/*', :exclude_files => "Carte/Carte.h"
+```
+
+#### Using resources
+
+If the resource files are sprecified in `files`, they will be added to *Copy Bundle Resource* build phase instead of *Compile Source* build phase.
+
+```ruby
+github 'author/Repository', 'x.y.z', :files => ['Source/*', 'Images/*']
+```
 
 #### Resolving filename conflicts
 
@@ -157,7 +170,7 @@ FAQ
 ---
 
 * Are you using this in real-world projects? (Does Apple allow apps to use CocoaSeeds?)
-    * Of course I am. I'm developing a social media service that has about 1.6 million users. The app is on AppStore without any complaints from Apple.
+    * Of course I am. I'm developing a social media service that has about 2 million users. The app is on AppStore without any complaints from Apple.
 
 * Can I ignore **Seeds** folder in VCS *(version control system)*?
     * Yes, you can ignore the **Seeds** folder (by adding it to `.gitignore` if you use Git).
