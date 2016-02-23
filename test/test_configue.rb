@@ -222,7 +222,7 @@ class CoreTest < Test
 
   def test_custom_git_source
     seedfile %{
-      git "git@github.com:SwiftyJSON/SwiftyJSON.git", "2.3.2", :files => "Source/*.{swift,h,plist}"
+      git "https://github.com/devxoul/CocoaSeeds.git", "2.3.2", :files => "Source/*.{swift,h,plist}"
     }
     @seed.install
 
