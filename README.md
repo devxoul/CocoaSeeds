@@ -44,6 +44,7 @@ github "Alamofire/Alamofire", "1.2.1", :files => "Source/*.{swift,h}"
 github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
 github "devxoul/SwipeBack", "1.0.4"
 github "SnapKit/SnapKit", :commit => "62e7645", :files => "Source/*.{swift,h}"
+git "git@github.com:devxoul/SwipeBack.git", "1.0.4"
 
 target :MyAppTest do
   github "Quick/Quick", "v0.3.1", :files => "Quick/**.{swift,h}"
