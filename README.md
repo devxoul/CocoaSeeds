@@ -45,6 +45,9 @@ github "devxoul/JLToast", "1.2.5", :files => "JLToast/*.{swift,h}"
 github "devxoul/SwipeBack", "1.0.4"
 github "SnapKit/SnapKit", :commit => "62e7645", :files => "Source/*.{swift,h}"
 
+git "https://gitlab.com/MyCompany/CompanyLibrary.git", "1.1.0"
+local "PrivateLibrary", "../libs/PrivateLibrary", :files => "Source/*.{swift,h}"
+
 target :MyAppTest do
   github "Quick/Quick", "v0.3.1", :files => "Quick/**.{swift,h}"
   github "Quick/Nimble", "v0.4.2", :files => "Nimble/**.{swift,h}"
