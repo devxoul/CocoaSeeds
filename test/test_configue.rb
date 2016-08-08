@@ -220,19 +220,62 @@ class CoreTest < Test
       "TestProj resource phase should have Info-iOS.plist"
   end
 
-
-  def test_remove
+  def test_custom_git_source
     seedfile %{
-      github "devxoul/JLToast", "1.2.2", :files => "JLToast/*.{h,swift}"
+      git "https://github.com/SwiftyJSON/SwiftyJSON.git", "2.3.2", :files => "Source/*.{swift,h,plist}"
     }
     @seed.install
 
-    seedfile nil
+    assert\
+      self.phase(:TestProj).include_filename?('SwiftyJSON.swift'),
+      "TestProj build phase should have SwiftyJSON.swift"
+    assert\
+      !self.resource_phase(:TestProj).include_filename?('SwiftyJSON.swift')
+    "TestProj resource phase should have SwiftyJSON.swift"
+
+    assert\
+      !self.phase(:TestProj).include_filename?('Info-iOS.plist'),
+      "TestProj build phase should not have Info-iOS.plist"
+    assert\
+      self.resource_phase(:TestProj).include_filename?('Info-iOS.plist')
+    "TestProj resource phase should have Info-iOS.plist"
+
+  end
+
+  def test_local_source
+
+    pwd = File.expand_path(File.dirname(__FILE__))
+    new_dir = File.join(pwd, "TestDir")
+    FileUtils.mkdir(new_dir)
+
+    swift_file_path = File.join(new_dir, "a.swift")
+    plist_file_path = File.join(new_dir, "a.plist")
+    File.open(swift_file_path, "w+") { |file| file.write("") }
+    File.open(plist_file_path, "w+") { |file| file.write("") }
+
+    seedfile %{
+      local "Test","./test/TestDir/", :files => "*.{swift,h,plist}"
+    }
+
     @seed.install
 
     assert\
-      !File.exists?(File.join(@seeds_dirname, "JLToast")),
-      "Directory Seeds/JLToast exists."
+      self.phase(:TestProj).include_filename?('a.swift'),
+      "TestProj build phase should have a.swift"
+    assert\
+      !self.resource_phase(:TestProj).include_filename?('a.swift'),
+      "TestProj resource phase should not have a.swift"
+
+    assert\
+      !self.phase(:TestProj).include_filename?('a.plist'),
+      "TestProj build phase should not have a.plist"
+    assert\
+      self.resource_phase(:TestProj).include_filename?('a.plist'),
+    "TestProj resource phase should have a.plist"
+    FileUtils.rm_rf new_dir
+
+
+
 
     assert_nil\
       self.project["Seeds"]["JLToast"],
