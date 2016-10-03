@@ -413,9 +413,9 @@ module Seeds
       self.seeds.sort.each do |name, seed|
         dirname = File.join(self.root_path, "Seeds", seed.name)
         if seed.instance_of? Seeds::Seed::LocalSeed
-          self.install_local_seed(seed, Shellwords.escape(dirname))
+          self.install_local_seed(seed, dirname)
         else
-          self.install_seed(seed, Shellwords.escape(dirname))
+          self.install_seed(seed, dirname)
         end
 
         next if not seed.files
@@ -448,7 +448,7 @@ module Seeds
     def install_seed(seed, dirname)
       # if remote url has changed, remove directory and clone again
       remote_url = `
-        cd #{dirname} 2>&1 &&
+        cd #{Shellwords.escape(dirname)} 2>&1 &&
         git remote show origin -n | grep Fetch | awk '{ print $3 }' 2>&1
       `.strip
       if remote_url != seed.url
@@ -461,7 +461,7 @@ module Seeds
 
         command = "git clone #{seed.url}"
         command += " -b #{seed.version}" if seed.version
-        command += " #{dirname} 2>&1"
+        command += " #{Shellwords.escape(dirname)} 2>&1"
         output = `#{command}`
 
         unable_to_access = output.include?("unable to access")
@@ -480,7 +480,8 @@ module Seeds
         end
 
         if seed.commit and not seed.version # checkout to commit
-          output = `cd #{dirname} 2>&1 && git checkout #{seed.commit} 2>&1`
+          output = `cd #{Shellwords.escape(dirname)} 2>&1 &&\
+                    git checkout #{seed.commit} 2>&1`
           if output.include?("did not match any")
             raise Seeds::Exception.new\
               "#{seed.name}: Couldn't find the commit `#{seed.commit}`."
@@ -491,7 +492,7 @@ module Seeds
       end
 
       # discard local changes
-      `cd #{dirname} 2>&1 &&\
+      `cd #{Shellwords.escape(dirname)} 2>&1 &&\
        git reset HEAD --hard 2>&1 &&\
        git checkout . 2>&1 &&\
        git clean -fd 2>&1`
@@ -509,7 +510,7 @@ module Seeds
       if seed.version
         say "Installing #{seed.name} #{seed.version}"\
             " (was #{lock_version or lock_commit})".green
-        output = `cd #{dirname} 2>&1 &&\
+        output = `cd #{Shellwords.escape(dirname)} 2>&1 &&\
                  git fetch origin #{seed.version} --tags 2>&1 &&\
                  git checkout #{seed.version} 2>&1`
         if output.include?("Couldn't find")
@@ -520,7 +521,7 @@ module Seeds
       elsif seed.commit
         say "Installing #{seed.name} #{seed.commit}"\
             " (was #{lock_version or lock_commit})".green
-        output = `cd #{dirname} 2>&1 &&
+        output = `cd #{Shellwords.escape(dirname)} 2>&1 &&
                   git checkout master 2>&1 &&
                   git pull 2>&1 &&
                   git checkout #{seed.commit} 2>&1`
@@ -541,7 +542,8 @@ module Seeds
 
       if seed.source_dir
         full_source_path = File.expand_path(seed.source_dir)
-        command = "cp -R #{full_source_path}/* #{self.root_path}/Seeds/#{seed.name}"
+        command = "cp -R #{Shellwords.escape(full_source_path)}/* "\
+                  "#{Shellwords.escape(self.root_path)}/Seeds/#{seed.name}"
         output = `#{command}`
       else
         raise Seeds::Exception.new\
