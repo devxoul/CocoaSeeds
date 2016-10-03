@@ -541,7 +541,7 @@ module Seeds
 
       if seed.source_dir
         full_source_path = File.expand_path(seed.source_dir)
-        command = "cp -R #{full_source_path}/ #{self.root_path}/Seeds/#{seed.name}"
+        command = "cp -R #{full_source_path}/* #{self.root_path}/Seeds/#{seed.name}"
         output = `#{command}`
       else
         raise Seeds::Exception.new\
