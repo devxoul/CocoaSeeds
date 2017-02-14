@@ -24,7 +24,9 @@ Gem::Specification.new do |s|
   s.require_paths = %w{ lib }
 
   s.add_runtime_dependency "xcodeproj", ">= 0.28"
-  s.add_runtime_dependency "colorize", "~> 0.7.0"
+  s.add_runtime_dependency "colored2", "~> 3.1"
+
+  s.add_development_dependency "rake"
 
   s.required_ruby_version = ">= 2.2.2"
 end

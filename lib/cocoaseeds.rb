@@ -1,4 +1,4 @@
-require 'colorize'
+require 'colored2'
 require 'digest'
 require 'fileutils'
 require 'xcodeproj'
